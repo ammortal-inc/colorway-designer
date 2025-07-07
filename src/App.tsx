@@ -8,9 +8,12 @@ import VoronoiVisualization from './components/VoronoiVisualization';
 const MAX_COLORS = 10;
 
 // Default demo colors to show the functionality
-const DEFAULT_COLORS = [
-  { hex: '#AAA', density: 1 },
-  { hex: '#BBB', density: 1 },
+interface DefaultColor {
+  hex: string;
+  density?: number;
+}
+
+const DEFAULT_COLORS: DefaultColor[] = [
 ];
 
 function App() {

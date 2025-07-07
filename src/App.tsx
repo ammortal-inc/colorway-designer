@@ -9,10 +9,8 @@ const MAX_COLORS = 10;
 
 // Default demo colors to show the functionality
 const DEFAULT_COLORS = [
-  { hex: '#FF6B6B', density: 1 }, // Red
-  { hex: '#4ECDC4', density: 1 }, // Teal
-  { hex: '#45B7D1', density: 1 }, // Blue
-  { hex: '#FFA07A', density: 1 }  // Orange
+  { hex: '#AAA', density: 1 },
+  { hex: '#BBB', density: 1 },
 ];
 
 function App() {

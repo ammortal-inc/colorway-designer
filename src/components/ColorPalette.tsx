@@ -88,8 +88,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
                   onClick={() => onColorRemove(color.id)}
                   className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center text-sm font-bold"
                   style={{ 
-                    color: textColor,
-                    ringOffsetColor: color.hex
+                    color: textColor
                   }}
                   aria-label={`Remove color ${color.hex}`}
                 >

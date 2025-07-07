@@ -11,6 +11,11 @@ interface SidebarProps {
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
   onColorChange?: (colorId: string, hex: string) => void;
+  onTemporaryColorChange?: (colorId: string, hex: string) => void;
+  onTemporaryColorClose?: () => void;
+  onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  temporaryColorId?: string | null;
+  temporaryColorHex?: string | null;
   maxColors: number;
   scale: number;
   onScaleChange: (scale: number) => void;
@@ -23,6 +28,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   onColorRemove,
   onDensityChange,
   onColorChange,
+  onTemporaryColorChange,
+  onTemporaryColorClose,
+  onTemporaryColorSave,
+  temporaryColorId,
+  temporaryColorHex,
   maxColors,
   scale,
   onScaleChange,
@@ -59,6 +69,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         onColorRemove={onColorRemove}
         onDensityChange={onDensityChange}
         onColorChange={onColorChange}
+        onTemporaryColorChange={onTemporaryColorChange}
+        onTemporaryColorClose={onTemporaryColorClose}
+        onTemporaryColorSave={onTemporaryColorSave}
+        temporaryColorId={temporaryColorId}
+        temporaryColorHex={temporaryColorHex}
       />
 
       <div className="mt-6">

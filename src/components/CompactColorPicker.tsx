@@ -1,0 +1,297 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Color } from '../types';
+import { 
+  hexToHsb, 
+  hsbToHex, 
+  isValidHexColor,
+  formatHexColor
+} from '../utils/colorUtils';
+import ColorPicker2D from './ColorPicker2D';
+
+interface CompactColorPickerProps {
+  color: Color;
+  isOpen: boolean;
+  anchorElement: HTMLElement | null;
+  onColorChange: (newHex: string) => void;
+  onClose: () => void;
+}
+
+interface Position {
+  top: number;
+  left: number;
+}
+
+const CompactColorPicker: React.FC<CompactColorPickerProps> = ({ 
+  color, 
+  isOpen, 
+  anchorElement,
+  onColorChange, 
+  onClose 
+}) => {
+  const [currentHex, setCurrentHex] = useState(color.hex);
+  const [hexInput, setHexInput] = useState(color.hex);
+  const [hsbValues, setHsbValues] = useState(() => hexToHsb(color.hex));
+  const [isHexValid, setIsHexValid] = useState(true);
+  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
+  const [isDraggingHue, setIsDraggingHue] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const hueSliderRef = useRef<HTMLDivElement>(null);
+
+  // Update values when color prop changes
+  useEffect(() => {
+    setCurrentHex(color.hex);
+    setHexInput(color.hex);
+    setHsbValues(hexToHsb(color.hex));
+    setIsHexValid(true);
+  }, [color.hex]);
+
+  // Calculate position when anchor element or open state changes
+  useEffect(() => {
+    if (!isOpen || !anchorElement || !popupRef.current) return;
+
+    const calculatePosition = () => {
+      const anchorRect = anchorElement.getBoundingClientRect();
+      const popupRect = popupRef.current!.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+
+      let top = anchorRect.bottom + scrollY + 8; // 8px gap below anchor
+      let left = anchorRect.left + scrollX;
+
+      // Adjust if popup would go off the right edge
+      if (left + popupRect.width > viewportWidth + scrollX) {
+        left = anchorRect.right + scrollX - popupRect.width;
+      }
+
+      // Adjust if popup would go off the left edge
+      if (left < scrollX) {
+        left = scrollX + 8;
+      }
+
+      // If popup would go below viewport, position above anchor
+      if (top + popupRect.height > viewportHeight + scrollY) {
+        top = anchorRect.top + scrollY - popupRect.height - 8;
+      }
+
+      // Ensure popup doesn't go above viewport
+      if (top < scrollY) {
+        top = scrollY + 8;
+      }
+
+      setPosition({ top, left });
+    };
+
+    // Small delay to ensure popup is rendered before calculating position
+    const timeoutId = setTimeout(calculatePosition, 0);
+    
+    // Recalculate on window resize/scroll
+    window.addEventListener('resize', calculatePosition);
+    window.addEventListener('scroll', calculatePosition);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', calculatePosition);
+      window.removeEventListener('scroll', calculatePosition);
+    };
+  }, [isOpen, anchorElement]);
+
+  // Update color and notify parent in real-time
+  const updateColor = useCallback((hex: string) => {
+    setCurrentHex(hex);
+    setHexInput(hex);
+    onColorChange(hex);
+  }, [onColorChange]);
+
+  // Handle hex input changes
+  const handleHexChange = useCallback((value: string) => {
+    setHexInput(value);
+    const formatted = formatHexColor(value);
+    
+    if (isValidHexColor(formatted)) {
+      setHsbValues(hexToHsb(formatted));
+      updateColor(formatted);
+      setIsHexValid(true);
+    } else {
+      setIsHexValid(false);
+    }
+  }, [updateColor]);
+
+  // Handle 2D picker changes
+  const handlePickerChange = useCallback((saturation: number, brightness: number) => {
+    const newHsb = { ...hsbValues, s: saturation, b: brightness };
+    setHsbValues(newHsb);
+    
+    const hex = hsbToHex(newHsb.h, newHsb.s, newHsb.b);
+    updateColor(hex);
+    setIsHexValid(true);
+  }, [hsbValues, updateColor]);
+
+  // Handle hue slider changes
+  const handleHueChange = useCallback((hue: number) => {
+    const newHsb = { ...hsbValues, h: hue };
+    setHsbValues(newHsb);
+    
+    const hex = hsbToHex(newHsb.h, newHsb.s, newHsb.b);
+    updateColor(hex);
+    setIsHexValid(true);
+  }, [hsbValues, updateColor]);
+
+  // Handle hue slider interactions
+  const handleHueSliderInteraction = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hueSliderRef.current) return;
+    
+    const rect = hueSliderRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percentage = Math.max(0, Math.min(1, y / rect.height));
+    const hue = Math.round(percentage * 360);
+    handleHueChange(hue);
+  }, [handleHueChange]);
+
+  // Handle mouse events for hue slider dragging
+  useEffect(() => {
+    if (!isDraggingHue) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!hueSliderRef.current) return;
+      
+      const rect = hueSliderRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const percentage = Math.max(0, Math.min(1, y / rect.height));
+      const hue = Math.round(percentage * 360);
+      handleHueChange(hue);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingHue(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingHue, handleHueChange]);
+
+  // Handle click outside to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      ref={popupRef}
+      className="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50"
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        width: '280px'
+      }}
+    >
+      {/* Header with close button */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm font-medium text-gray-700">Edit Color</div>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Color picker and hue slider */}
+      <div className="mb-3">
+        <div className="flex gap-3 items-start">
+          <ColorPicker2D
+            hue={hsbValues.h}
+            saturation={hsbValues.s}
+            brightness={hsbValues.b}
+            onChange={handlePickerChange}
+            size={120}
+          />
+          
+          {/* Vertical hue slider */}
+          <div className="flex flex-col items-center">
+            <div 
+              ref={hueSliderRef}
+              className="w-4 h-[120px] rounded cursor-pointer relative border border-gray-300"
+              style={{
+                background: 'linear-gradient(to bottom, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
+              }}
+              onMouseDown={(e) => {
+                setIsDraggingHue(true);
+                handleHueSliderInteraction(e);
+              }}
+              onClick={handleHueSliderInteraction}
+            >
+              {/* Hue indicator */}
+              <div
+                className="absolute w-4 h-2 bg-white border border-gray-600 rounded-sm shadow-md pointer-events-none"
+                style={{
+                  top: `${(hsbValues.h / 360) * 100}%`,
+                  left: '0px',
+                  transform: 'translateY(-50%)'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hex input */}
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Hex Color
+        </label>
+        <input
+          type="text"
+          value={hexInput}
+          onChange={(e) => handleHexChange(e.target.value)}
+          className={`w-full px-2 py-1 border rounded text-sm font-mono ${
+            isHexValid 
+              ? 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+              : 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+          }`}
+          placeholder="#FF0000"
+        />
+        {!isHexValid && (
+          <div className="text-red-500 text-xs mt-1">Invalid hex color</div>
+        )}
+      </div>
+
+      {/* Instructions */}
+      <div className="text-xs text-gray-500 mt-3">
+        Click outside or press Escape to close
+      </div>
+    </div>
+  );
+};
+
+export default CompactColorPicker;

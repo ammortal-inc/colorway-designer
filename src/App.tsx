@@ -23,6 +23,8 @@ function App() {
   
   const [scale, setScale] = useState<number>(1.0);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [temporaryColorId, setTemporaryColorId] = useState<string | null>(null);
+  const [temporaryColorHex, setTemporaryColorHex] = useState<string | null>(null);
   
   // URL state management
   const handleColorsChange = useCallback((newColors: Color[]) => {
@@ -76,6 +78,28 @@ function App() {
       )
     );
   };
+
+  const handleTemporaryColorChange = (colorId: string, hex: string) => {
+    setTemporaryColorId(colorId);
+    setTemporaryColorHex(hex);
+  };
+
+  const handleTemporaryColorClose = () => {
+    setTemporaryColorId(null);
+    setTemporaryColorHex(null);
+  };
+
+  const handleTemporaryColorSave = (colorId: string, hex: string) => {
+    handleColorChange(colorId, hex);
+    handleTemporaryColorClose();
+  };
+
+  // Create colors with temporary override for visualization
+  const visualizationColors = colors.map(color => 
+    color.id === temporaryColorId && temporaryColorHex
+      ? { ...color, hex: temporaryColorHex }
+      : color
+  );
   
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale);
@@ -92,6 +116,11 @@ function App() {
         onColorRemove={handleColorRemove}
         onDensityChange={handleDensityChange}
         onColorChange={handleColorChange}
+        onTemporaryColorChange={handleTemporaryColorChange}
+        onTemporaryColorClose={handleTemporaryColorClose}
+        onTemporaryColorSave={handleTemporaryColorSave}
+        temporaryColorId={temporaryColorId}
+        temporaryColorHex={temporaryColorHex}
         maxColors={MAX_COLORS}
         scale={scale}
         onScaleChange={handleScaleChange}
@@ -111,7 +140,7 @@ function App() {
           
           <div className="bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
             <VoronoiVisualization
-              colors={colors}
+              colors={visualizationColors}
               width={600}
               height={600}
               scale={scale}

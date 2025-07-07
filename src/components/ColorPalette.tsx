@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Color } from '../types';
 import { calculateTotalDensity, calculateColorProbability, normalizeDensity, getContrastTextColor } from '../utils/colorUtils';
-import ColorEditor from './ColorEditor';
+import CompactColorPicker from './CompactColorPicker';
 
 interface ColorPaletteProps {
   colors: Color[];
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
   onColorChange?: (colorId: string, hex: string) => void;
+  onTemporaryColorChange?: (colorId: string, hex: string) => void;
+  onTemporaryColorClose?: () => void;
+  onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  temporaryColorId?: string | null;
+  temporaryColorHex?: string | null;
 }
 
-const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDensityChange, onColorChange }) => {
+const ColorPalette: React.FC<ColorPaletteProps> = ({ 
+  colors, 
+  onColorRemove, 
+  onDensityChange, 
+  onColorChange,
+  onTemporaryColorChange,
+  onTemporaryColorClose,
+  temporaryColorId,
+  temporaryColorHex
+}) => {
   const [editingDensity, setEditingDensity] = useState<string | null>(null);
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
   const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const colorButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   
   const totalDensity = calculateTotalDensity(colors);
 
@@ -54,18 +70,30 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
   };
 
   const handleColorEdit = (colorId: string) => {
-    setEditingColorId(colorId);
+    const buttonElement = colorButtonRefs.current[colorId];
+    if (buttonElement && onTemporaryColorChange) {
+      setEditingColorId(colorId);
+      setAnchorElement(buttonElement);
+    }
   };
 
-  const handleColorSave = (colorId: string, newHex: string) => {
-    if (onColorChange) {
-      onColorChange(colorId, newHex);
+  const handleTemporaryColorChange = (newHex: string) => {
+    if (editingColorId && onTemporaryColorChange) {
+      onTemporaryColorChange(editingColorId, newHex);
+    }
+  };
+
+  const handleColorPickerClose = () => {
+    // Save the temporary color if there is one
+    if (editingColorId && temporaryColorHex && onColorChange) {
+      onColorChange(editingColorId, temporaryColorHex);
+    }
+    
+    if (onTemporaryColorClose) {
+      onTemporaryColorClose();
     }
     setEditingColorId(null);
-  };
-
-  const handleColorCancel = () => {
-    setEditingColorId(null);
+    setAnchorElement(null);
   };
 
   if (colors.length === 0) {
@@ -87,24 +115,32 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
         {colors.map((color) => {
           const probability = calculateColorProbability(color, totalDensity, colors.length);
           const isEditing = editingDensity === color.id;
-          const textColor = getContrastTextColor(color.hex);
+          
+          // Use temporary color if this color is being edited
+          const displayColor = color.id === temporaryColorId && temporaryColorHex 
+            ? temporaryColorHex 
+            : color.hex;
+          const textColor = getContrastTextColor(displayColor);
           
           return (
             <div
               key={color.id}
               className="p-3 border border-neutral-600 rounded-lg hover:border-neutral-500 transition-colors"
-              style={{ backgroundColor: color.hex }}
+              style={{ backgroundColor: displayColor }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
                   <button
+                    ref={(el) => {
+                      colorButtonRefs.current[color.id] = el;
+                    }}
                     onClick={() => handleColorEdit(color.id)}
                     className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity"
                     style={{ color: textColor }}
-                    disabled={!onColorChange}
+                    disabled={!onTemporaryColorChange}
                     title="Click to edit color"
                   >
-                    {color.hex}
+                    {displayColor}
                   </button>
                 </div>
                 
@@ -192,13 +228,14 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
         })}
       </div>
 
-      {/* Color Editor Modal */}
+      {/* Compact Color Picker */}
       {editingColorId && (
-        <ColorEditor
+        <CompactColorPicker
           color={colors.find(c => c.id === editingColorId)!}
           isOpen={!!editingColorId}
-          onSave={(newHex) => handleColorSave(editingColorId, newHex)}
-          onCancel={handleColorCancel}
+          anchorElement={anchorElement}
+          onColorChange={handleTemporaryColorChange}
+          onClose={handleColorPickerClose}
         />
       )}
     </div>

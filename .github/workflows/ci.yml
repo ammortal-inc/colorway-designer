@@ -1,0 +1,17 @@
+name: Continuous Integration
+
+on:
+    push:
+        branches:
+            - '*' # All branches except those with slashes
+        paths:
+            - '**' # All changed files (this will ignore empty merge commits)
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+jobs:
+    ci:
+        uses: ammortal-inc/ammortal.workflows/.github/workflows/semrel-metadata.yml@prod
+        with:
+            verbose: true
+        secrets: inherit

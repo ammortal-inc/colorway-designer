@@ -11,8 +11,8 @@ interface VoronoiVisualizationProps {
 
 const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   colors,
-  width = 800,
-  height = 500,
+  width = 600,
+  height = 600,
   cellCount = 150,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,11 +24,21 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       if (!containerRef.current) return;
       
       const containerWidth = containerRef.current.offsetWidth;
-      const aspectRatio = height / width;
-      const newWidth = Math.min(containerWidth - 32, width); // 32px for padding
-      const newHeight = newWidth * aspectRatio;
+      const containerHeight = containerRef.current.offsetHeight;
       
-      setCanvasSize({ width: newWidth, height: newHeight });
+      // Reserve space for the button and spacing (approximately 80px)
+      const availableHeight = containerHeight - 80;
+      
+      // Use the smaller of available width or height to ensure it's a perfect square
+      const maxSize = Math.min(
+        containerWidth - 32, // small padding for borders
+        availableHeight
+      );
+      
+      // Make it a perfect square with a reasonable minimum size
+      const squareSize = Math.max(150, maxSize);
+      
+      setCanvasSize({ width: squareSize, height: squareSize });
     };
 
     updateCanvasSize();
@@ -55,12 +65,17 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center space-y-4">
-      <div className="relative w-full">
+    <div ref={containerRef} className="flex flex-col items-center space-y-4 h-full">
+      <div className="relative flex justify-center flex-1">
         <canvas
           ref={canvasRef}
-          className="border border-neutral-600 rounded-lg shadow-sm w-full max-w-full"
-          style={{ maxWidth: '100%', height: 'auto' }}
+          className="border border-neutral-600 rounded-lg shadow-sm"
+          style={{ 
+            width: `${canvasSize.width}px`, 
+            height: `${canvasSize.height}px`,
+            maxWidth: '100%',
+            maxHeight: '100%'
+          }}
         />
         
         {colors.length === 0 && (

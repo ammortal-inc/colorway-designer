@@ -56,8 +56,8 @@ function App() {
         maxColors={MAX_COLORS}
       />
       
-      <main className="flex-1 p-4 lg:p-8 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 p-4 lg:p-8 overflow-auto flex flex-col">
+        <div className="max-w-4xl mx-auto flex-1 flex flex-col">
           <div className="mb-6">
             <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
               Plastic Sheet Preview
@@ -67,11 +67,11 @@ function App() {
             </p>
           </div>
           
-          <div className="bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6">
+          <div className="bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
             <VoronoiVisualization
               colors={colors}
-              width={800}
-              height={500}
+              width={600}
+              height={600}
               cellCount={150}
             />
           </div>

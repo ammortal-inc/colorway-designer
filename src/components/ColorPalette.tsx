@@ -52,7 +52,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
 
   if (colors.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400">
+      <div className="text-center py-8 text-neutral-400">
         <p>No colors in palette</p>
         <p className="text-sm">Add some colors to get started!</p>
       </div>
@@ -61,7 +61,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
 
   return (
     <div className="space-y-2">
-      <h3 className="text-lg font-medium text-gray-100 mb-3">
+      <h3 className="text-lg font-medium text-neutral-100 mb-3">
         Color Palette ({colors.length}/10)
       </h3>
       
@@ -73,23 +73,23 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
           return (
             <div
               key={color.id}
-              className="p-3 border border-gray-600 rounded-lg hover:border-gray-500 transition-colors bg-gray-700"
+              className="p-3 border border-neutral-600 rounded-lg hover:border-neutral-500 transition-colors bg-neutral-700"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
                   <div
-                    className="w-8 h-8 rounded-md border-2 border-gray-500 flex-shrink-0"
+                    className="w-8 h-8 rounded-md border-2 border-neutral-500 flex-shrink-0"
                     style={{ backgroundColor: color.hex }}
                     title={color.hex}
                   />
-                  <span className="font-mono text-sm text-gray-300">
+                  <span className="font-mono text-sm text-neutral-300">
                     {color.hex}
                   </span>
                 </div>
                 
                 <button
                   onClick={() => onColorRemove(color.id)}
-                  className="text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-700 rounded-md p-1 transition-colors w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  className="text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-neutral-700 rounded-md p-1 transition-colors w-6 h-6 flex items-center justify-center text-sm font-bold"
                   aria-label={`Remove color ${color.hex}`}
                 >
                   ×
@@ -97,7 +97,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-gray-300">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
                   <div className="flex items-center space-x-2">
                     <span>Density:</span>
                     {isEditing ? (
@@ -112,7 +112,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
                             if (e.key === 'Enter') handleDensitySubmit(color.id);
                             if (e.key === 'Escape') handleDensityCancel(color.id);
                           }}
-                          className="w-16 px-1 py-0.5 text-xs border border-gray-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-gray-600 text-gray-100"
+                          className="w-16 px-1 py-0.5 text-xs border border-neutral-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-neutral-600 text-neutral-100"
                           autoFocus
                         />
                         <button
@@ -147,7 +147,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
                 
                 {/* Visual density bar */}
                 <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-gray-600 rounded-full h-2">
+                  <div className="flex-1 bg-neutral-600 rounded-full h-2">
                     <div
                       className="h-2 rounded-full transition-all duration-300"
                       style={{

@@ -21,12 +21,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isMaxColorsReached = colors.length >= maxColors;
 
   return (
-    <div className="w-1/4 bg-gray-800 border-r border-gray-600 p-6 overflow-y-auto flex-shrink-0">
+    <div className="w-1/4 bg-neutral-800 border-r border-neutral-600 p-6 overflow-y-auto flex-shrink-0">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-100 mb-2">
+        <h1 className="text-2xl font-bold text-neutral-100 mb-2">
           Colorway Designer
         </h1>
-        <p className="text-gray-300 text-sm">
+        <p className="text-neutral-300 text-sm">
           Design custom colorways for plastic sheets using recycled chip colors
         </p>
       </div>
@@ -50,8 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         onDensityChange={onDensityChange}
       />
 
-      <div className="mt-8 pt-6 border-t border-gray-600">
-        <div className="text-sm text-gray-300 space-y-1">
+      <div className="mt-8 pt-6 border-t border-neutral-600">
+        <div className="text-sm text-neutral-300 space-y-1">
           <p><strong>About:</strong> This tool helps you visualize how different colored plastic chips will look when mixed together in a manufacturing process.</p>
           <p><strong>Density:</strong> Each color has a density value that controls its probability of being selected. Higher density = more frequent appearance in the visualization.</p>
           <p><strong>Visualization:</strong> The Voronoi diagram shows a weighted distribution of your selected colors based on their density values, simulating the random mixing of plastic chips.</p>

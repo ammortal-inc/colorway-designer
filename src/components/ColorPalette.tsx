@@ -41,12 +41,10 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove }) =>
             
             <button
               onClick={() => onColorRemove(color.id)}
-              className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-md p-1 transition-colors"
+              className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-md p-1 transition-colors w-6 h-6 flex items-center justify-center text-sm font-bold"
               aria-label={`Remove color ${color.hex}`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ×
             </button>
           </div>
         ))}

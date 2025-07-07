@@ -8,15 +8,15 @@ const MAX_COLORS = 10;
 
 // Default demo colors to show the functionality
 const DEFAULT_COLORS = [
-  '#FF6B6B', // Red
-  '#4ECDC4', // Teal
-  '#45B7D1', // Blue
-  '#FFA07A'  // Orange
+  { hex: '#FF6B6B', density: 1 }, // Red
+  { hex: '#4ECDC4', density: 1 }, // Teal
+  { hex: '#45B7D1', density: 1 }, // Blue
+  { hex: '#FFA07A', density: 1 }  // Orange
 ];
 
 function App() {
   const [colors, setColors] = useState<Color[]>(() => {
-    return DEFAULT_COLORS.map(hex => createColor(hex));
+    return DEFAULT_COLORS.map(({ hex, density }) => createColor(hex, density));
   });
 
   const handleColorAdd = (hex: string) => {
@@ -36,12 +36,23 @@ function App() {
     setColors(prev => prev.filter(color => color.id !== colorId));
   };
 
+  const handleDensityChange = (colorId: string, density: number) => {
+    setColors(prev => 
+      prev.map(color => 
+        color.id === colorId 
+          ? { ...color, density } 
+          : color
+      )
+    );
+  };
+
   return (
     <div className="flex flex-row h-screen bg-gray-50">
       <Sidebar
         colors={colors}
         onColorAdd={handleColorAdd}
         onColorRemove={handleColorRemove}
+        onDensityChange={handleDensityChange}
         maxColors={MAX_COLORS}
       />
       

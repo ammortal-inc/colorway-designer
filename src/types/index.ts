@@ -2,6 +2,7 @@ export interface Color {
   id: string;
   hex: string;
   name?: string;
+  density: number;
 }
 
 export interface ColorPalette {

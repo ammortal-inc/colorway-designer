@@ -7,6 +7,7 @@ interface SidebarProps {
   colors: Color[];
   onColorAdd: (hex: string) => void;
   onColorRemove: (colorId: string) => void;
+  onDensityChange: (colorId: string, density: number) => void;
   maxColors: number;
 }
 
@@ -14,6 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   colors,
   onColorAdd,
   onColorRemove,
+  onDensityChange,
   maxColors,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
@@ -45,12 +47,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       <ColorPalette
         colors={colors}
         onColorRemove={onColorRemove}
+        onDensityChange={onDensityChange}
       />
 
       <div className="mt-8 pt-6 border-t border-gray-200">
         <div className="text-sm text-gray-600 space-y-1">
           <p><strong>About:</strong> This tool helps you visualize how different colored plastic chips will look when mixed together in a manufacturing process.</p>
-          <p><strong>Visualization:</strong> The Voronoi diagram shows an equal distribution of your selected colors, simulating the random mixing of plastic chips.</p>
+          <p><strong>Density:</strong> Each color has a density value that controls its probability of being selected. Higher density = more frequent appearance in the visualization.</p>
+          <p><strong>Visualization:</strong> The Voronoi diagram shows a weighted distribution of your selected colors based on their density values, simulating the random mixing of plastic chips.</p>
         </div>
       </div>
     </div>

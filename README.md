@@ -5,17 +5,24 @@ A modern web application for designing custom colorways for plastic sheets manuf
 ## Features
 
 - **Interactive Color Palette**: Add up to 10 custom colors using hex codes
+- **Density Control**: Set individual density values for each color to control mixing proportions
 - **Real-time Visualization**: See how your colors will look when mixed as plastic chips
-- **Voronoi Diagram**: Accurate representation of random color distribution in manufacturing
+- **Weighted Distribution**: Voronoi diagram respects density values for realistic representation
+- **Visual Feedback**: Probability bars and percentages show exact color distribution
 - **Responsive Design**: Works on desktop and mobile devices
 - **Intuitive Interface**: Clean, modern UI with sidebar controls
 
 ## How It Works
 
 1. **Add Colors**: Use the sidebar to input hex color codes (e.g., #FF0000, #00FF00)
-2. **View Preview**: The main area shows a Voronoi diagram representing your plastic sheet
-3. **Regenerate**: Click "Regenerate Pattern" to see different random distributions
-4. **Manage Colors**: Remove unwanted colors with the X button in the palette
+2. **Set Density**: Click on any density value to edit it (default is 1.0)
+   - Higher density = more frequent appearance in the visualization
+   - Density values are relative to each other
+   - Can be any non-negative number (decimals allowed)
+3. **View Preview**: The main area shows a Voronoi diagram representing your plastic sheet
+4. **Monitor Distribution**: Each color shows its calculated percentage based on density
+5. **Regenerate**: Click "Regenerate Pattern" to see different random distributions
+6. **Manage Colors**: Remove unwanted colors with the X button in the palette
 
 ## Technology Stack
 

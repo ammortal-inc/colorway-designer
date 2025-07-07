@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Color } from '../types';
-import { calculateTotalDensity, calculateColorProbability, normalizeDensity } from '../utils/colorUtils';
+import { calculateTotalDensity, calculateColorProbability, normalizeDensity, getContrastTextColor } from '../utils/colorUtils';
 
 interface ColorPaletteProps {
   colors: Color[];
@@ -69,27 +69,28 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
         {colors.map((color) => {
           const probability = calculateColorProbability(color, totalDensity, colors.length);
           const isEditing = editingDensity === color.id;
+          const textColor = getContrastTextColor(color.hex);
           
           return (
             <div
               key={color.id}
-              className="p-3 border border-neutral-600 rounded-lg hover:border-neutral-500 transition-colors bg-neutral-700"
+              className="p-3 border border-neutral-600 rounded-lg hover:border-neutral-500 transition-colors"
+              style={{ backgroundColor: color.hex }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                  <div
-                    className="w-8 h-8 rounded-md border-2 border-neutral-500 flex-shrink-0"
-                    style={{ backgroundColor: color.hex }}
-                    title={color.hex}
-                  />
-                  <span className="font-mono text-sm text-neutral-300">
+                  <span className="font-mono text-sm font-medium" style={{ color: textColor }}>
                     {color.hex}
                   </span>
                 </div>
                 
                 <button
                   onClick={() => onColorRemove(color.id)}
-                  className="text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-neutral-700 rounded-md p-1 transition-colors w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  style={{ 
+                    color: textColor,
+                    ringOffsetColor: color.hex
+                  }}
                   aria-label={`Remove color ${color.hex}`}
                 >
                   ×
@@ -97,7 +98,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-neutral-300">
+                <div className="flex items-center justify-between text-xs" style={{ color: textColor }}>
                   <div className="flex items-center space-x-2">
                     <span>Density:</span>
                     {isEditing ? (
@@ -112,19 +113,22 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
                             if (e.key === 'Enter') handleDensitySubmit(color.id);
                             if (e.key === 'Escape') handleDensityCancel(color.id);
                           }}
-                          className="w-16 px-1 py-0.5 text-xs border border-neutral-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-neutral-600 text-neutral-100"
+                          className="w-16 px-1 py-0.5 text-xs border border-neutral-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/90 backdrop-blur-sm"
+                          style={{ color: '#374151' }}
                           autoFocus
                         />
                         <button
                           onClick={() => handleDensitySubmit(color.id)}
-                          className="text-green-400 hover:text-green-300 text-xs"
+                          className="hover:opacity-80 text-xs transition-opacity"
+                          style={{ color: textColor }}
                           title="Save"
                         >
                           ✓
                         </button>
                         <button
                           onClick={() => handleDensityCancel(color.id)}
-                          className="text-red-400 hover:text-red-300 text-xs"
+                          className="hover:opacity-80 text-xs transition-opacity"
+                          style={{ color: textColor }}
                           title="Cancel"
                         >
                           ✕
@@ -133,27 +137,28 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
                     ) : (
                       <button
                         onClick={() => handleDensityEdit(color.id, color.density)}
-                        className="text-blue-400 hover:text-blue-300 underline"
+                        className="hover:opacity-80 underline transition-opacity"
+                        style={{ color: textColor }}
                       >
                         {color.density}
                       </button>
                     )}
                   </div>
                   
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium" style={{ color: textColor }}>
                     {(probability * 100).toFixed(1)}%
                   </span>
                 </div>
                 
                 {/* Visual density bar */}
                 <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-neutral-600 rounded-full h-2">
+                  <div className="flex-1 bg-black/20 rounded-full h-2">
                     <div
                       className="h-2 rounded-full transition-all duration-300"
                       style={{
                         width: `${Math.min(probability * 100, 100)}%`,
-                        backgroundColor: color.hex,
-                        opacity: 0.8
+                        backgroundColor: textColor,
+                        opacity: 0.6
                       }}
                     />
                   </div>

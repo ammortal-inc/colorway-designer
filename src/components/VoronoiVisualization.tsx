@@ -26,11 +26,12 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       const containerWidth = containerRef.current.offsetWidth;
       const containerHeight = containerRef.current.offsetHeight;
       
-      // Reserve space for the button and the three equal flex spacers
-      // If we have 3 equal spacers and a button (~40px), each spacer should be at least 20px
-      const minSpacerHeight = 20;
+      // Reserve space for the button and fixed spacing
+      // Fixed spacing: 32px (h-8) + button height (~40px) + minimum bottom flex space (20px)
+      const fixedSpacing = 32; // h-8 class
       const buttonHeight = 40;
-      const totalReservedHeight = (minSpacerHeight * 3) + buttonHeight;
+      const minBottomSpace = 20;
+      const totalReservedHeight = fixedSpacing + buttonHeight + minBottomSpace;
       
       const availableHeight = containerHeight - totalReservedHeight;
       

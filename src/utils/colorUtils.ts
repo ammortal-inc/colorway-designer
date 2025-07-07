@@ -134,3 +134,94 @@ export const getContrastTextColor = (backgroundColor: string): string => {
   // Return dark text for light backgrounds, light text for dark backgrounds
   return luminance > 0.5 ? '#374151' : '#F3F4F6';
 };
+
+// Convert RGB to hex
+export const rgbToHex = (r: number, g: number, b: number): string => {
+  const toHex = (value: number): string => {
+    const clamped = Math.max(0, Math.min(255, Math.round(value)));
+    return clamped.toString(16).padStart(2, '0');
+  };
+  
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+};
+
+// Convert RGB to HSB
+export const rgbToHsb = (r: number, g: number, b: number): { h: number; s: number; b: number } => {
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+  
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const delta = max - min;
+  
+  let h = 0;
+  let s = 0;
+  const brightness = max;
+  
+  if (delta !== 0) {
+    s = delta / max;
+    
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta) % 6;
+    } else if (max === gNorm) {
+      h = (bNorm - rNorm) / delta + 2;
+    } else {
+      h = (rNorm - gNorm) / delta + 4;
+    }
+    
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  
+  return {
+    h: Math.round(h),
+    s: Math.round(s * 100),
+    b: Math.round(brightness * 100)
+  };
+};
+
+// Convert HSB to RGB
+export const hsbToRgb = (h: number, s: number, b: number): { r: number; g: number; b: number } => {
+  const hNorm = h / 360;
+  const sNorm = s / 100;
+  const bNorm = b / 100;
+  
+  const c = bNorm * sNorm;
+  const x = c * (1 - Math.abs(((hNorm * 6) % 2) - 1));
+  const m = bNorm - c;
+  
+  let r = 0, g = 0, blue = 0;
+  
+  if (hNorm >= 0 && hNorm < 1/6) {
+    r = c; g = x; blue = 0;
+  } else if (hNorm >= 1/6 && hNorm < 2/6) {
+    r = x; g = c; blue = 0;
+  } else if (hNorm >= 2/6 && hNorm < 3/6) {
+    r = 0; g = c; blue = x;
+  } else if (hNorm >= 3/6 && hNorm < 4/6) {
+    r = 0; g = x; blue = c;
+  } else if (hNorm >= 4/6 && hNorm < 5/6) {
+    r = x; g = 0; blue = c;
+  } else if (hNorm >= 5/6 && hNorm < 1) {
+    r = c; g = 0; blue = x;
+  }
+  
+  return {
+    r: Math.round((r + m) * 255),
+    g: Math.round((g + m) * 255),
+    b: Math.round((blue + m) * 255)
+  };
+};
+
+// Convert hex to HSB
+export const hexToHsb = (hex: string): { h: number; s: number; b: number } => {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHsb(r, g, b);
+};
+
+// Convert HSB to hex
+export const hsbToHex = (h: number, s: number, b: number): string => {
+  const { r, g, b: blue } = hsbToRgb(h, s, b);
+  return rgbToHex(r, g, blue);
+};

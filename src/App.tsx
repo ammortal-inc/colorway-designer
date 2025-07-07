@@ -66,6 +66,16 @@ function App() {
       )
     );
   };
+
+  const handleColorChange = (colorId: string, hex: string) => {
+    setColors(prev => 
+      prev.map(color => 
+        color.id === colorId 
+          ? { ...color, hex } 
+          : color
+      )
+    );
+  };
   
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale);
@@ -81,6 +91,7 @@ function App() {
         onColorAdd={handleColorAdd}
         onColorRemove={handleColorRemove}
         onDensityChange={handleDensityChange}
+        onColorChange={handleColorChange}
         maxColors={MAX_COLORS}
         scale={scale}
         onScaleChange={handleScaleChange}

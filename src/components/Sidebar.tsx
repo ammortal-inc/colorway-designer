@@ -10,6 +10,7 @@ interface SidebarProps {
   onColorAdd: (hex: string) => void;
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
+  onColorChange?: (colorId: string, hex: string) => void;
   maxColors: number;
   scale: number;
   onScaleChange: (scale: number) => void;
@@ -21,6 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onColorAdd,
   onColorRemove,
   onDensityChange,
+  onColorChange,
   maxColors,
   scale,
   onScaleChange,
@@ -56,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         colors={colors}
         onColorRemove={onColorRemove}
         onDensityChange={onDensityChange}
+        onColorChange={onColorChange}
       />
 
       <div className="mt-6">

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { Color } from '../types';
 import { calculateTotalDensity, calculateColorProbability, normalizeDensity, getContrastTextColor } from '../utils/colorUtils';
+import ColorEditor from './ColorEditor';
 
 interface ColorPaletteProps {
   colors: Color[];
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
+  onColorChange?: (colorId: string, hex: string) => void;
 }
 
-const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDensityChange }) => {
+const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDensityChange, onColorChange }) => {
   const [editingDensity, setEditingDensity] = useState<string | null>(null);
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
   
   const totalDensity = calculateTotalDensity(colors);
 
@@ -50,6 +53,21 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
     });
   };
 
+  const handleColorEdit = (colorId: string) => {
+    setEditingColorId(colorId);
+  };
+
+  const handleColorSave = (colorId: string, newHex: string) => {
+    if (onColorChange) {
+      onColorChange(colorId, newHex);
+    }
+    setEditingColorId(null);
+  };
+
+  const handleColorCancel = () => {
+    setEditingColorId(null);
+  };
+
   if (colors.length === 0) {
     return (
       <div className="text-center py-8 text-neutral-400">
@@ -79,9 +97,15 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                  <span className="font-mono text-sm font-medium" style={{ color: textColor }}>
+                  <button
+                    onClick={() => handleColorEdit(color.id)}
+                    className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity"
+                    style={{ color: textColor }}
+                    disabled={!onColorChange}
+                    title="Click to edit color"
+                  >
                     {color.hex}
-                  </span>
+                  </button>
                 </div>
                 
                 <button
@@ -167,6 +191,16 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors, onColorRemove, onDe
           );
         })}
       </div>
+
+      {/* Color Editor Modal */}
+      {editingColorId && (
+        <ColorEditor
+          color={colors.find(c => c.id === editingColorId)!}
+          isOpen={!!editingColorId}
+          onSave={(newHex) => handleColorSave(editingColorId, newHex)}
+          onCancel={handleColorCancel}
+        />
+      )}
     </div>
   );
 };

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Color } from './types';
 import { createColor } from './utils/colorUtils';
 import Sidebar from './components/Sidebar';
 import VoronoiVisualization from './components/VoronoiVisualization';
+import ScaleControl from './components/ScaleControl';
 
 const MAX_COLORS = 10;
 
@@ -18,6 +19,9 @@ function App() {
   const [colors, setColors] = useState<Color[]>(() => {
     return DEFAULT_COLORS.map(({ hex, density }) => createColor(hex, density));
   });
+  
+  const [scale, setScale] = useState<number>(1.0);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const handleColorAdd = (hex: string) => {
     if (colors.length >= MAX_COLORS) {
@@ -45,6 +49,13 @@ function App() {
       )
     );
   };
+  
+  const handleScaleChange = useCallback((newScale: number) => {
+    setScale(newScale);
+    setIsGenerating(true);
+    // Clear the generating state after a short delay
+    setTimeout(() => setIsGenerating(false), 200);
+  }, []);
 
   return (
     <div className="flex flex-row h-screen bg-neutral-900">
@@ -54,6 +65,9 @@ function App() {
         onColorRemove={handleColorRemove}
         onDensityChange={handleDensityChange}
         maxColors={MAX_COLORS}
+        scale={scale}
+        onScaleChange={handleScaleChange}
+        isGenerating={isGenerating}
       />
       
       <main className="flex-1 p-4 lg:p-8 overflow-auto flex flex-col">
@@ -72,7 +86,7 @@ function App() {
               colors={colors}
               width={600}
               height={600}
-              cellCount={150}
+              scale={scale}
             />
           </div>
         </div>

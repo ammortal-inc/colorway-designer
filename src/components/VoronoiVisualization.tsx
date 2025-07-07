@@ -6,15 +6,22 @@ interface VoronoiVisualizationProps {
   colors: Color[];
   width?: number;
   height?: number;
-  cellCount?: number;
+  scale?: number;
 }
 
 const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   colors,
   width = 600,
   height = 600,
-  cellCount = 150,
+  scale = 1.0,
 }) => {
+  // Map scale 0.1-4.0 to cell count 100-10000
+  const minCells = 100;
+  const maxCells = 10000;
+  const minScale = 0.1;
+  const maxScale = 4.0;
+  
+  const cellCount = Math.round(minCells + (scale - minScale) * (maxCells - minCells) / (maxScale - minScale));
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width, height });
@@ -61,7 +68,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     canvas.height = canvasSize.height;
 
     renderVoronoiToCanvas(canvas, [], colors, cellCount);
-  }, [colors, canvasSize, cellCount]);
+  }, [colors, canvasSize, cellCount, scale]);
 
   const regeneratePattern = () => {
     const canvas = canvasRef.current;

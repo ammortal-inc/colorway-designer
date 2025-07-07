@@ -2,6 +2,7 @@ import React from 'react';
 import { Color } from '../types';
 import ColorPicker from './ColorPicker';
 import ColorPalette from './ColorPalette';
+import ScaleControl from './ScaleControl';
 
 interface SidebarProps {
   colors: Color[];
@@ -9,6 +10,9 @@ interface SidebarProps {
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
   maxColors: number;
+  scale: number;
+  onScaleChange: (scale: number) => void;
+  isGenerating: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -17,6 +21,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onColorRemove,
   onDensityChange,
   maxColors,
+  scale,
+  onScaleChange,
+  isGenerating,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
 
@@ -49,6 +56,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         onColorRemove={onColorRemove}
         onDensityChange={onDensityChange}
       />
+
+      <div className="mt-6">
+        <ScaleControl
+          scale={scale}
+          onScaleChange={onScaleChange}
+          disabled={colors.length === 0}
+          isGenerating={isGenerating}
+        />
+      </div>
 
       <div className="mt-8 pt-6 border-t border-neutral-600">
         <div className="text-sm text-neutral-300 space-y-1">

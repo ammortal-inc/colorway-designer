@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Color } from '../types';
 import { 
   hexToHsb, 
-  hsbToHex, 
+  hsbToHex,
+  hexToRgb,
+  rgbToHex,
   isValidHexColor,
   formatHexColor
 } from '../utils/colorUtils';
@@ -28,9 +30,9 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
   onColorChange, 
   onClose 
 }) => {
-  const [currentHex, setCurrentHex] = useState(color.hex);
   const [hexInput, setHexInput] = useState(color.hex);
   const [hsbValues, setHsbValues] = useState(() => hexToHsb(color.hex));
+  const [rgbValues, setRgbValues] = useState(() => hexToRgb(color.hex));
   const [isHexValid, setIsHexValid] = useState(true);
   const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
   const [isDraggingHue, setIsDraggingHue] = useState(false);
@@ -39,9 +41,9 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
 
   // Update values when color prop changes
   useEffect(() => {
-    setCurrentHex(color.hex);
     setHexInput(color.hex);
     setHsbValues(hexToHsb(color.hex));
+    setRgbValues(hexToRgb(color.hex));
     setIsHexValid(true);
   }, [color.hex]);
 
@@ -99,8 +101,8 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
 
   // Update color and notify parent in real-time
   const updateColor = useCallback((hex: string) => {
-    setCurrentHex(hex);
     setHexInput(hex);
+    setRgbValues(hexToRgb(hex));
     onColorChange(hex);
   }, [onColorChange]);
 
@@ -111,6 +113,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
     
     if (isValidHexColor(formatted)) {
       setHsbValues(hexToHsb(formatted));
+      setRgbValues(hexToRgb(formatted));
       updateColor(formatted);
       setIsHexValid(true);
     } else {
@@ -124,6 +127,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
     setHsbValues(newHsb);
     
     const hex = hsbToHex(newHsb.h, newHsb.s, newHsb.b);
+    setRgbValues(hexToRgb(hex));
     updateColor(hex);
     setIsHexValid(true);
   }, [hsbValues, updateColor]);
@@ -134,6 +138,34 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
     setHsbValues(newHsb);
     
     const hex = hsbToHex(newHsb.h, newHsb.s, newHsb.b);
+    setRgbValues(hexToRgb(hex));
+    updateColor(hex);
+    setIsHexValid(true);
+  }, [hsbValues, updateColor]);
+
+  // Handle RGB input changes
+  const handleRgbChange = useCallback((field: 'r' | 'g' | 'b', value: string) => {
+    const numValue = Math.max(0, Math.min(255, parseInt(value) || 0));
+    const newRgb = { ...rgbValues, [field]: numValue };
+    setRgbValues(newRgb);
+    
+    const hex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+    setHsbValues(hexToHsb(hex));
+    updateColor(hex);
+    setIsHexValid(true);
+  }, [rgbValues, updateColor]);
+
+  // Handle HSB input changes
+  const handleHsbChange = useCallback((field: 'h' | 's' | 'b', value: string) => {
+    const numValue = field === 'h' 
+      ? Math.max(0, Math.min(360, parseInt(value) || 0))
+      : Math.max(0, Math.min(100, parseInt(value) || 0));
+    
+    const newHsb = { ...hsbValues, [field]: numValue };
+    setHsbValues(newHsb);
+    
+    const hex = hsbToHex(newHsb.h, newHsb.s, newHsb.b);
+    setRgbValues(hexToRgb(hex));
     updateColor(hex);
     setIsHexValid(true);
   }, [hsbValues, updateColor]);
@@ -210,7 +242,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
-        width: '280px'
+        width: '400px'
       }}
     >
       {/* Header with close button */}
@@ -260,6 +292,89 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
                   transform: 'translateY(-50%)'
                 }}
               />
+            </div>
+          </div>
+
+          {/* RGB and HSB inputs */}
+          <div className="flex gap-3">
+            {/* RGB Inputs */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">RGB</label>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">R</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="255"
+                    value={rgbValues.r}
+                    onChange={(e) => handleRgbChange('r', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">G</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="255"
+                    value={rgbValues.g}
+                    onChange={(e) => handleRgbChange('g', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">B</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="255"
+                    value={rgbValues.b}
+                    onChange={(e) => handleRgbChange('b', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* HSB Inputs */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">HSB</label>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">H</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="360"
+                    value={hsbValues.h}
+                    onChange={(e) => handleHsbChange('h', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">S</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={hsbValues.s}
+                    onChange={(e) => handleHsbChange('s', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 w-3">B</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={hsbValues.b}
+                    onChange={(e) => handleHsbChange('b', e.target.value)}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

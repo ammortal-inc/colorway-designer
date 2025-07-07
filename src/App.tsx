@@ -47,7 +47,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-row h-screen bg-gray-700">
+    <div className="flex flex-row h-screen bg-gray-900">
       <Sidebar
         colors={colors}
         onColorAdd={handleColorAdd}
@@ -67,7 +67,7 @@ function App() {
             </p>
           </div>
           
-          <div className="bg-gray-700 rounded-lg shadow-sm p-4 lg:p-6">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 lg:p-6">
             <VoronoiVisualization
               colors={colors}
               width={800}

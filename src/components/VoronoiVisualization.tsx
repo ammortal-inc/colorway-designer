@@ -26,8 +26,13 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       const containerWidth = containerRef.current.offsetWidth;
       const containerHeight = containerRef.current.offsetHeight;
       
-      // Reserve space for the button and spacing (approximately 80px)
-      const availableHeight = containerHeight - 80;
+      // Reserve space for the button and the three equal flex spacers
+      // If we have 3 equal spacers and a button (~40px), each spacer should be at least 20px
+      const minSpacerHeight = 20;
+      const buttonHeight = 40;
+      const totalReservedHeight = (minSpacerHeight * 3) + buttonHeight;
+      
+      const availableHeight = containerHeight - totalReservedHeight;
       
       // Use the smaller of available width or height to ensure it's a perfect square
       const maxSize = Math.min(
@@ -65,8 +70,10 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center space-y-4 h-full">
-      <div className="relative flex justify-center flex-1">
+    <div ref={containerRef} className="flex flex-col items-center h-full">
+      <div className="flex-1"></div>
+      
+      <div className="relative flex justify-center">
         <canvas
           ref={canvasRef}
           className="border border-neutral-600 rounded-lg shadow-sm"
@@ -88,6 +95,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
         )}
       </div>
       
+      <div className="h-8"></div>
+      
       {colors.length > 0 && (
         <button
           onClick={regeneratePattern}
@@ -96,6 +105,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
           Regenerate Pattern
         </button>
       )}
+      
+      <div className="flex-1"></div>
     </div>
   );
 };

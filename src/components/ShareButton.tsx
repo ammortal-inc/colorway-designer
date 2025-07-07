@@ -18,6 +18,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = fal
     setIsSharing(true);
     
     try {
+      // Wait a brief moment to ensure URL is updated
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const shareableUrl = generateShareableURL(colors, scale);
       
       // Try to use the modern Clipboard API

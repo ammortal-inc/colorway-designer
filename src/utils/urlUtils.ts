@@ -98,8 +98,11 @@ export const updateURL = (colors: Color[], scale: number): void => {
     const urlParams = encodeColorsToURL(colors, scale);
     const newUrl = urlParams ? `${window.location.pathname}?${urlParams}` : window.location.pathname;
     
-    // Update URL without causing page reload
-    window.history.replaceState({}, '', newUrl);
+    // Only update URL if it's actually different from current URL
+    if (newUrl !== window.location.pathname + window.location.search) {
+      // Use replaceState to avoid cluttering browser history
+      window.history.replaceState({}, '', newUrl);
+    }
   } catch (error) {
     console.error('Error updating URL:', error);
   }
@@ -107,6 +110,22 @@ export const updateURL = (colors: Color[], scale: number): void => {
 
 export const generateShareableURL = (colors: Color[], scale: number): string => {
   try {
+    // First, check if the current URL already has the right state
+    const currentUrlState = getStateFromURL();
+    
+    if (currentUrlState && 
+        currentUrlState.colors.length === colors.length &&
+        Math.abs(currentUrlState.scale - scale) < 0.01 &&
+        currentUrlState.colors.every((urlColor, index) => 
+          colors[index] && 
+          urlColor.hex === colors[index].hex && 
+          Math.abs(urlColor.density - colors[index].density) < 0.01
+        )) {
+      // Current URL already represents the current state, return it
+      return window.location.href;
+    }
+    
+    // Otherwise, generate a new URL
     const urlParams = encodeColorsToURL(colors, scale);
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     return urlParams ? `${baseUrl}?${urlParams}` : baseUrl;

@@ -26,12 +26,15 @@ export const useURLState = ({
   onScaleChange,
 }: UseURLStateProps): UseURLStateReturn => {
   const isInitialLoad = useRef(true);
-  const lastUpdateTime = useRef(0);
+  const isUpdatingFromURL = useRef(false);
   
   // Debounced URL update function
   const debouncedUpdateURL = useRef(
     debounce((colors: Color[], scale: number) => {
-      updateURL(colors, scale);
+      // Only update URL if we're not currently updating from URL
+      if (!isUpdatingFromURL.current) {
+        updateURL(colors, scale);
+      }
     }, 300)
   ).current;
 
@@ -48,22 +51,22 @@ export const useURLState = ({
 
   // Update URL when colors or scale changes
   const updateURLWithState = useCallback((colors: Color[], scale: number) => {
-    // Prevent infinite loops by checking if this is an external change
-    const now = Date.now();
-    if (now - lastUpdateTime.current < 100) {
+    // Don't update URL if we're currently loading from URL
+    if (isUpdatingFromURL.current) {
       return;
     }
     
-    lastUpdateTime.current = now;
     debouncedUpdateURL(colors, scale);
   }, [debouncedUpdateURL]);
 
-  // Load initial state from URL
+  // Load initial state from URL (only on mount)
   useEffect(() => {
     if (isInitialLoad.current) {
       const urlState = loadStateFromURL();
       
       if (urlState) {
+        isUpdatingFromURL.current = true;
+        
         // Only update if the URL state is different from current state
         const colorsChanged = 
           urlState.colors.length !== colors.length ||
@@ -82,11 +85,16 @@ export const useURLState = ({
         if (scaleChanged) {
           onScaleChange(urlState.scale);
         }
+        
+        // Reset flag after state updates have been applied
+        setTimeout(() => {
+          isUpdatingFromURL.current = false;
+        }, 100);
       }
       
       isInitialLoad.current = false;
     }
-  }, [colors, scale, onColorsChange, onScaleChange, loadStateFromURL]);
+  }, []); // Remove dependencies to prevent re-runs
 
   // Update URL when state changes (after initial load)
   useEffect(() => {
@@ -98,12 +106,19 @@ export const useURLState = ({
   // Handle browser back/forward navigation
   useEffect(() => {
     const handlePopState = () => {
+      isUpdatingFromURL.current = true;
+      
       const urlState = loadStateFromURL();
       
       if (urlState) {
         onColorsChange(urlState.colors);
         onScaleChange(urlState.scale);
       }
+      
+      // Reset flag after state updates
+      setTimeout(() => {
+        isUpdatingFromURL.current = false;
+      }, 100);
     };
 
     window.addEventListener('popstate', handlePopState);

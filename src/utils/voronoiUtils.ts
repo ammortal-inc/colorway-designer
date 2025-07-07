@@ -66,6 +66,42 @@ export const renderVoronoiToCanvas = (
   const delaunay = Delaunay.from(points);
   const voronoi = delaunay.voronoi([0, 0, width, height]);
   
+  // Configure canvas to prevent thin lines/borders
+  ctx.lineWidth = 0;
+  ctx.strokeStyle = 'transparent';
+  
+  // Disable smoothing for very high cell counts to prevent artifacts
+  if (cellCount >= 8000) {
+    ctx.imageSmoothingEnabled = false;
+  } else {
+    ctx.imageSmoothingEnabled = true;
+  }
+  
+  // Helper function to expand polygon to eliminate gaps
+  const expandPolygon = (polygon: [number, number][], expansionFactor: number): [number, number][] => {
+    // Calculate centroid
+    let centerX = 0, centerY = 0;
+    for (const [x, y] of polygon) {
+      centerX += x;
+      centerY += y;
+    }
+    centerX /= polygon.length;
+    centerY /= polygon.length;
+    
+    // Expand each vertex away from centroid
+    return polygon.map(([x, y]) => {
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const expandedX = centerX + dx * (1 + expansionFactor);
+      const expandedY = centerY + dy * (1 + expansionFactor);
+      return [expandedX, expandedY] as [number, number];
+    });
+  };
+  
+  // Progressive expansion based on cell density
+  // Expansion factor is 0.01 at 0 cells and 0.2 at 10000 cells
+  let expansionFactor = (cellCount / 10000) * 0.2;
+  
   // Render each cell
   for (let i = 0; i < points.length; i++) {
     const cell = voronoi.cellPolygon(i);
@@ -75,10 +111,15 @@ export const renderVoronoiToCanvas = (
     
     ctx.fillStyle = randomColor.hex;
     ctx.beginPath();
-    ctx.moveTo(cell[0][0], cell[0][1]);
     
-    for (let j = 1; j < cell.length; j++) {
-      ctx.lineTo(cell[j][0], cell[j][1]);
+    // Expand polygon if needed to eliminate gaps
+    const finalPolygon = expansionFactor > 0 ? expandPolygon(cell, expansionFactor) : cell;
+    
+    // Round coordinates to prevent subpixel rendering artifacts
+    ctx.moveTo(Math.round(finalPolygon[0][0]), Math.round(finalPolygon[0][1]));
+    
+    for (let j = 1; j < finalPolygon.length; j++) {
+      ctx.lineTo(Math.round(finalPolygon[j][0]), Math.round(finalPolygon[j][1]));
     }
     
     ctx.closePath();

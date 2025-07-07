@@ -37,7 +37,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
+    <div className="flex flex-row h-screen bg-gray-50">
       <Sidebar
         colors={colors}
         onColorAdd={handleColorAdd}

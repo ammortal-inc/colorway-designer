@@ -66,7 +66,7 @@ const ScaleControl: React.FC<ScaleControlProps> = ({ scale, onScaleChange, disab
         Adjust the viewing scale to see more or fewer color cells. Lower values simulate viewing from farther away.
       </p>
       
-      <style jsx>{`
+      <style>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
           height: 20px;

@@ -3,6 +3,7 @@ import { Color } from '../types';
 import ColorPicker from './ColorPicker';
 import ColorPalette from './ColorPalette';
 import ScaleControl from './ScaleControl';
+import ShareButton from './ShareButton';
 
 interface SidebarProps {
   colors: Color[];
@@ -63,6 +64,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           onScaleChange={onScaleChange}
           disabled={colors.length === 0}
           isGenerating={isGenerating}
+        />
+      </div>
+      
+      <div className="mt-6">
+        <ShareButton
+          colors={colors}
+          scale={scale}
+          disabled={isGenerating}
         />
       </div>
 

@@ -1,0 +1,138 @@
+import { Color } from '../types';
+import { createColor, isValidHexColor, isValidDensity } from './colorUtils';
+
+interface URLState {
+  colors: Color[];
+  scale: number;
+}
+
+interface SerializableColor {
+  hex: string;
+  density: number;
+}
+
+
+export const encodeColorsToURL = (colors: Color[], scale: number): string => {
+  try {
+    // Convert colors to a simpler format for URL encoding
+    const serializableColors: SerializableColor[] = colors.map(({ hex, density }) => ({
+      hex,
+      density,
+    }));
+
+    // Create URL parameters
+    const params = new URLSearchParams();
+    
+    if (serializableColors.length > 0) {
+      const colorsJson = JSON.stringify(serializableColors);
+      const encodedColors = btoa(colorsJson);
+      params.set('colors', encodedColors);
+    }
+    
+    if (scale !== 1.0) {
+      params.set('scale', scale.toString());
+    }
+
+    return params.toString();
+  } catch (error) {
+    console.error('Error encoding colors to URL:', error);
+    return '';
+  }
+};
+
+export const decodeColorsFromURL = (url: string): URLState | null => {
+  try {
+    const urlObj = new URL(url);
+    const params = urlObj.searchParams;
+    
+    const colorsParam = params.get('colors');
+    const scaleParam = params.get('scale');
+    
+    let colors: Color[] = [];
+    let scale = 1.0;
+    
+    // Decode colors if present
+    if (colorsParam) {
+      try {
+        const decodedColors = atob(colorsParam);
+        const parsedColors: SerializableColor[] = JSON.parse(decodedColors);
+        
+        // Validate and create Color objects
+        colors = parsedColors
+          .filter(({ hex, density }) => 
+            isValidHexColor(hex) && isValidDensity(density)
+          )
+          .map(({ hex, density }) => createColor(hex, density));
+      } catch (error) {
+        console.warn('Invalid colors parameter in URL:', error);
+      }
+    }
+    
+    // Decode scale if present
+    if (scaleParam) {
+      const parsedScale = parseFloat(scaleParam);
+      if (!isNaN(parsedScale) && parsedScale >= 0.1 && parsedScale <= 4.0) {
+        scale = parsedScale;
+      }
+    }
+    
+    return { colors, scale };
+  } catch (error) {
+    console.error('Error decoding colors from URL:', error);
+    return null;
+  }
+};
+
+export const getStateFromURL = (): URLState | null => {
+  try {
+    const currentUrl = window.location.href;
+    return decodeColorsFromURL(currentUrl);
+  } catch (error) {
+    console.error('Error getting state from URL:', error);
+    return null;
+  }
+};
+
+export const updateURL = (colors: Color[], scale: number): void => {
+  try {
+    const urlParams = encodeColorsToURL(colors, scale);
+    const newUrl = urlParams ? `${window.location.pathname}?${urlParams}` : window.location.pathname;
+    
+    // Update URL without causing page reload
+    window.history.replaceState({}, '', newUrl);
+  } catch (error) {
+    console.error('Error updating URL:', error);
+  }
+};
+
+export const generateShareableURL = (colors: Color[], scale: number): string => {
+  try {
+    const urlParams = encodeColorsToURL(colors, scale);
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    return urlParams ? `${baseUrl}?${urlParams}` : baseUrl;
+  } catch (error) {
+    console.error('Error generating shareable URL:', error);
+    return window.location.href;
+  }
+};
+
+export const isValidURLState = (state: URLState | null): state is URLState => {
+  return (
+    state !== null &&
+    Array.isArray(state.colors) &&
+    typeof state.scale === 'number' &&
+    state.scale >= 0.1 &&
+    state.scale <= 4.0
+  );
+};
+
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void => {
+  let timeoutId: number;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => func(...args), delay);
+  };
+};

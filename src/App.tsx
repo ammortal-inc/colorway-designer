@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { Color } from './types';
 import { createColor } from './utils/colorUtils';
+import { useURLState } from './hooks/useURLState';
 import Sidebar from './components/Sidebar';
 import VoronoiVisualization from './components/VoronoiVisualization';
-import ScaleControl from './components/ScaleControl';
 
 const MAX_COLORS = 10;
 
@@ -20,6 +20,22 @@ function App() {
   
   const [scale, setScale] = useState<number>(1.0);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  
+  // URL state management
+  const handleColorsChange = useCallback((newColors: Color[]) => {
+    setColors(newColors);
+  }, []);
+  
+  const handleScaleChangeFromURL = useCallback((newScale: number) => {
+    setScale(newScale);
+  }, []);
+  
+  useURLState({
+    colors,
+    scale,
+    onColorsChange: handleColorsChange,
+    onScaleChange: handleScaleChangeFromURL,
+  });
 
   const handleColorAdd = (hex: string) => {
     if (colors.length >= MAX_COLORS) {

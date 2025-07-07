@@ -47,7 +47,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-row h-screen bg-gray-50">
+    <div className="flex flex-row h-screen bg-gray-700">
       <Sidebar
         colors={colors}
         onColorAdd={handleColorAdd}
@@ -59,15 +59,15 @@ function App() {
       <main className="flex-1 p-4 lg:p-8 overflow-auto">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
               Plastic Sheet Preview
             </h2>
-            <p className="text-gray-600 text-sm lg:text-base">
+            <p className="text-gray-300 text-sm lg:text-base">
               This visualization shows how your selected colors will appear when mixed as plastic chips in a manufactured sheet.
             </p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6">
+          <div className="bg-gray-700 rounded-lg shadow-sm p-4 lg:p-6">
             <VoronoiVisualization
               colors={colors}
               width={800}

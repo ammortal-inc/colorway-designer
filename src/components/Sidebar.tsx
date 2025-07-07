@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isMaxColorsReached = colors.length >= maxColors;
 
   return (
-    <div className="w-1/4 bg-white border-r border-gray-200 p-6 overflow-y-auto flex-shrink-0">
+    <div className="w-1/4 bg-gray-100 border-r border-gray-300 p-6 overflow-y-auto flex-shrink-0">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Colorway Designer

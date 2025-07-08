@@ -14,6 +14,7 @@ interface SidebarProps {
   onTemporaryColorChange?: (colorId: string, hex: string) => void;
   onTemporaryColorClose?: () => void;
   onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  onReset: () => void;
   temporaryColorId?: string | null;
   temporaryColorHex?: string | null;
   maxColors: number;
@@ -31,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onTemporaryColorChange,
   onTemporaryColorClose,
   onTemporaryColorSave,
+  onReset,
   temporaryColorId,
   temporaryColorHex,
   maxColors,
@@ -75,6 +77,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         temporaryColorId={temporaryColorId}
         temporaryColorHex={temporaryColorHex}
       />
+
+      {colors.length > 0 && (
+        <div className="mt-4">
+          <button
+            onClick={onReset}
+            className="w-full px-4 py-2 bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 dark:hover:bg-neutral-500 text-neutral-600 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-800 transition-colors"
+          >
+            Reset Palette
+          </button>
+        </div>
+      )}
 
       <div className="mt-6">
         <ScaleControl

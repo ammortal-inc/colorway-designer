@@ -95,6 +95,12 @@ function App() {
     handleTemporaryColorClose();
   };
 
+  const handleReset = () => {
+    setColors([]);
+    // Also clear any temporary color state
+    handleTemporaryColorClose();
+  };
+
   // Create colors with temporary override for visualization
   const visualizationColors = colors.map(color => 
     color.id === temporaryColorId && temporaryColorHex
@@ -125,6 +131,7 @@ function App() {
         onTemporaryColorChange={handleTemporaryColorChange}
         onTemporaryColorClose={handleTemporaryColorClose}
         onTemporaryColorSave={handleTemporaryColorSave}
+        onReset={handleReset}
         temporaryColorId={temporaryColorId}
         temporaryColorHex={temporaryColorHex}
         maxColors={MAX_COLORS}

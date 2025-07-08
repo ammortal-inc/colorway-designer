@@ -208,7 +208,7 @@ const handleReset = () => {
 
 - **Reset Button**: Only visible when colors exist in the palette
 - **Complete Reset**: Clears both permanent colors and any temporary editing state
-- **UI Feedback**: Red button styling indicates destructive action
+- **UI Feedback**: Very light neutral gray in light mode, darker neutral gray in dark mode - blends seamlessly with design system
 - **No Confirmation**: Immediate action for quick workflow (can be undone via browser back/forward if URL sharing is enabled)
 
 ## URL State Management Deep Dive

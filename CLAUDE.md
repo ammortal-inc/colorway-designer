@@ -16,7 +16,8 @@ This application allows users to create color palettes and visualize how they wo
 - **Adaptive UI**: Full background colors with automatic text contrast adjustment
 - **Light/Dark Mode**: Toggle between light and dark themes with persistent user preference
 - **Reset Functionality**: Clear all colors from palette with a single click
-- **URL Sharing**: Share colorways via URL parameters
+- **URL Sharing**: Share colorways via URL parameters with persistent lighting conditions
+- **Lighting Visualization**: Scientifically accurate lighting simulation showing how colors appear under different illuminants
 
 ## Technical Stack
 
@@ -56,6 +57,12 @@ This application allows users to create color palettes and visualize how they wo
 - Positioned in upper right corner of the application
 - Provides visual feedback for current theme state
 
+### `LightingSelector.tsx`
+- Tab-style lighting condition selector with 5 standard illuminants plus natural view
+- Shows light source names, color temperatures, and descriptive icons
+- Supports daylight (D65), incandescent, fluorescent, LED, and 660nm red light
+- Provides educational descriptions of each lighting condition
+
 ## Utilities
 
 ### `colorUtils.ts`
@@ -68,6 +75,13 @@ This application allows users to create color palettes and visualize how they wo
 - Seeded point generation for consistent cell patterns
 - Voronoi rendering with gap elimination
 - Performance optimizations for high cell counts
+
+### `lightingUtils.ts`
+- CIE color space conversions (sRGB ↔ XYZ) for accurate color science
+- Chromatic adaptation using Bradford transform for standard illuminants
+- Direct matrix transformations for narrow-band light sources (660nm red)
+- Performance-optimized color transform caching with LRU eviction
+- Scientifically accurate light source definitions with proper white points
 
 ## Theme System
 
@@ -92,6 +106,55 @@ This application allows users to create color palettes and visualize how they wo
 - Consistent neutral gray color palette throughout
 - Maintains accessibility with proper contrast ratios
 - Dynamic color palette backgrounds remain unchanged (theme-neutral)
+
+## Lighting Visualization System
+
+### Overview
+The lighting visualization system provides scientifically accurate simulation of how plastic colors appear under different lighting conditions. This helps users understand real-world color appearance in various environments.
+
+### Supported Light Sources
+
+1. **Natural (Default)**: No transformation - shows colors as specified
+2. **Daylight (D65)**: Standard daylight at 6500K - outdoor lighting conditions
+3. **Incandescent**: Warm tungsten bulb at 2856K - traditional indoor lighting
+4. **Fluorescent**: Cool white fluorescent at 4230K - office environments
+5. **LED Cool White**: Modern LED at 5000K - energy-efficient lighting
+6. **Red LED (660nm)**: Narrow-band red light - specialized viewing condition
+
+### Color Science Implementation
+
+**CIE Color Spaces:**
+- Uses XYZ color space as device-independent intermediate
+- Implements proper sRGB ↔ XYZ transformations with D65 white point
+- Applies gamma correction for accurate linear/nonlinear conversions
+
+**Chromatic Adaptation:**
+- Bradford transform for standard illuminant conversions
+- Maintains color appearance under different white points
+- Preserves perceptual color relationships
+
+**Special Cases:**
+- 660nm red LED uses direct matrix transformation
+- Emphasizes red wavelengths while suppressing green/blue
+- Simulates narrow-band spectral characteristics
+
+### Performance Features
+
+**Color Transform Caching:**
+- LRU cache with 1000-entry limit for expensive calculations
+- Cache keys combine hex color and light source ID
+- Automatic cache eviction maintains memory efficiency
+
+**Real-time Updates:**
+- Smooth 300ms transitions between lighting conditions
+- Immediate visual feedback for lighting changes
+- Maintains Voronoi cell structure during lighting transitions
+
+### URL State Persistence
+- Lighting conditions included in shareable URLs
+- Parameter format: `?lighting=light-source-id`
+- Defaults to 'natural' when no lighting parameter present
+- Browser history support for lighting state changes
 
 ## Development Commands
 
@@ -164,6 +227,13 @@ Test the application by:
    - Color contrast meets accessibility standards
    - Theme preference persists across browser sessions
    - System theme changes are detected when no manual preference is set
+8. **Testing Lighting Visualization**: 
+   - Switch between different lighting conditions and verify color transformations
+   - Confirm 660nm red light dramatically emphasizes red colors
+   - Test that warm lights (incandescent) shift colors toward yellow/orange
+   - Verify cool lights (LED, fluorescent) maintain or enhance blue tones
+   - Check URL persistence includes lighting parameter
+   - Test smooth transitions between lighting conditions (300ms duration)
 
 ## State Management Architecture
 

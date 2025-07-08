@@ -4,6 +4,7 @@ import { createColor, isValidHexColor, isValidDensity } from './colorUtils';
 interface URLState {
   colors: Color[];
   scale: number;
+  lightingId: string;
 }
 
 interface SerializableColor {
@@ -12,7 +13,7 @@ interface SerializableColor {
 }
 
 
-export const encodeColorsToURL = (colors: Color[], scale: number): string => {
+export const encodeColorsToURL = (colors: Color[], scale: number, lightingId: string): string => {
   try {
     // Convert colors to a simpler format for URL encoding
     const serializableColors: SerializableColor[] = colors.map(({ hex, density }) => ({
@@ -32,6 +33,10 @@ export const encodeColorsToURL = (colors: Color[], scale: number): string => {
     if (scale !== 1.0) {
       params.set('scale', scale.toString());
     }
+    
+    if (lightingId !== 'natural') {
+      params.set('lighting', lightingId);
+    }
 
     return params.toString();
   } catch (error) {
@@ -47,9 +52,11 @@ export const decodeColorsFromURL = (url: string): URLState | null => {
     
     const colorsParam = params.get('colors');
     const scaleParam = params.get('scale');
+    const lightingParam = params.get('lighting');
     
     let colors: Color[] = [];
     let scale = 1.0;
+    let lightingId = 'natural';
     
     // Decode colors if present
     if (colorsParam) {
@@ -76,7 +83,23 @@ export const decodeColorsFromURL = (url: string): URLState | null => {
       }
     }
     
-    return { colors, scale };
+    // Decode lighting if present
+    if (lightingParam) {
+      // Import lighting sources to validate
+      import('../utils/lightingUtils').then(({ LIGHT_SOURCES }) => {
+        const validLightIds = ['natural', ...LIGHT_SOURCES.map(l => l.id)];
+        if (validLightIds.includes(lightingParam)) {
+          lightingId = lightingParam;
+        }
+      });
+      // For synchronous validation, use a simple check
+      const knownLightIds = ['natural', 'incandescent-a', 'fluorescent-f2', 'led-5000k', 'red-660nm'];
+      if (knownLightIds.includes(lightingParam)) {
+        lightingId = lightingParam;
+      }
+    }
+    
+    return { colors, scale, lightingId };
   } catch (error) {
     console.error('Error decoding colors from URL:', error);
     return null;
@@ -93,9 +116,9 @@ export const getStateFromURL = (): URLState | null => {
   }
 };
 
-export const updateURL = (colors: Color[], scale: number): void => {
+export const updateURL = (colors: Color[], scale: number, lightingId: string): void => {
   try {
-    const urlParams = encodeColorsToURL(colors, scale);
+    const urlParams = encodeColorsToURL(colors, scale, lightingId);
     const newUrl = urlParams ? `${window.location.pathname}?${urlParams}` : window.location.pathname;
     
     // Only update URL if it's actually different from current URL
@@ -108,7 +131,7 @@ export const updateURL = (colors: Color[], scale: number): void => {
   }
 };
 
-export const generateShareableURL = (colors: Color[], scale: number): string => {
+export const generateShareableURL = (colors: Color[], scale: number, lightingId: string): string => {
   try {
     // First, check if the current URL already has the right state
     const currentUrlState = getStateFromURL();
@@ -116,6 +139,7 @@ export const generateShareableURL = (colors: Color[], scale: number): string => 
     if (currentUrlState && 
         currentUrlState.colors.length === colors.length &&
         Math.abs(currentUrlState.scale - scale) < 0.01 &&
+        currentUrlState.lightingId === lightingId &&
         currentUrlState.colors.every((urlColor, index) => 
           colors[index] && 
           urlColor.hex === colors[index].hex && 
@@ -126,7 +150,7 @@ export const generateShareableURL = (colors: Color[], scale: number): string => 
     }
     
     // Otherwise, generate a new URL
-    const urlParams = encodeColorsToURL(colors, scale);
+    const urlParams = encodeColorsToURL(colors, scale, lightingId);
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     return urlParams ? `${baseUrl}?${urlParams}` : baseUrl;
   } catch (error) {
@@ -141,7 +165,9 @@ export const isValidURLState = (state: URLState | null): state is URLState => {
     Array.isArray(state.colors) &&
     typeof state.scale === 'number' &&
     state.scale >= 0.1 &&
-    state.scale <= 4.0
+    state.scale <= 4.0 &&
+    typeof state.lightingId === 'string' &&
+    state.lightingId.length > 0
   );
 };
 

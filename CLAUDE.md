@@ -9,7 +9,8 @@ This application allows users to create color palettes and visualize how they wo
 ## Key Features
 
 - **Color Palette Management**: Add, edit, and remove colors with density weights
-- **Real-time Color Editing**: Compact popup color picker with 2D color picker, RGB/HSB inputs, and hex validation
+- **Real-time Color Editing**: Compact popup color picker with 2D picker, RGB/HSB inputs, and hex validation
+- **Intuitive UI**: Eyedropper icons indicate clickable color codes for easy discovery
 - **Voronoi Visualization**: Dynamic visualization showing how colors would appear when mixed
 - **Persistent Structure**: Cell patterns remain consistent during color editing
 - **Adaptive UI**: Full background colors with automatic text contrast adjustment
@@ -35,7 +36,7 @@ This application allows users to create color palettes and visualize how they wo
 
 ### `ColorPalette.tsx`
 - Displays color list with full background colors and adaptive text
-- Handles color editing via compact popup
+- Handles color editing via compact popup with eyedropper icon for visual affordance
 - Shows density values and probability percentages
 - Supports real-time color preview during editing
 
@@ -146,15 +147,19 @@ Colors can be shared via URL parameters:
 
 Test the application by:
 1. Adding multiple colors with different densities
-2. Editing colors and verifying consistent cell patterns
-3. Adjusting scale to test performance with different cell counts
-4. **Testing Reset Functionality**: 
+2. **Testing Color Editing UI**: 
+   - Verify eyedropper icons appear next to each hex color code
+   - Click on hex codes to open color picker
+   - Confirm icons inherit proper text colors in both themes
+3. Editing colors and verifying consistent cell patterns
+4. Adjusting scale to test performance with different cell counts
+5. **Testing Reset Functionality**: 
    - Add several colors to the palette
    - Click "Reset Palette" button and verify all colors are cleared
    - Confirm temporary color state is also cleared
    - Verify reset button only appears when colors exist
-5. Sharing URLs to test persistence
-6. **Testing Theme Toggle**: Switch between light/dark modes to verify:
+6. Sharing URLs to test persistence
+7. **Testing Theme Toggle**: Switch between light/dark modes to verify:
    - All components render correctly in both themes
    - Color contrast meets accessibility standards
    - Theme preference persists across browser sessions

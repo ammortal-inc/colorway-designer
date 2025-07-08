@@ -135,12 +135,20 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                       colorButtonRefs.current[color.id] = el;
                     }}
                     onClick={() => handleColorEdit(color.id)}
-                    className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity"
+                    className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity flex items-center"
                     style={{ color: textColor }}
                     disabled={!onTemporaryColorChange}
-                    title="Click to edit color"
+                    title="Click to open color picker"
                   >
                     {displayColor}
+                    <svg 
+                      className="w-4 h-4 ml-2" 
+                      viewBox="0 0 24 24" 
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12-1.93-1.91-1.41 1.41 1.42 1.42L3 16.25V21h4.75l8.92-8.92 1.42 1.42 1.41-1.41-1.91-1.93 3.12-3.12c.39-.39.39-1.02 0-1.41zM6.92 19H5v-1.92l8.06-8.06 1.92 1.92L6.92 19z"/>
+                    </svg>
                   </button>
                 </div>
                 

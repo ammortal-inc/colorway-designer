@@ -27,6 +27,25 @@ This application allows users to create color palettes and visualize how they wo
 - **D3-Delaunay** for Voronoi diagram generation
 - **Canvas API** for rendering
 
+## UI Layout
+
+The application uses a clean two-panel layout:
+
+- **Left Sidebar**: Contains all interactive controls and settings in logical workflow order
+  - Color picker and palette management
+  - Scale control for cell density
+  - Lighting condition selector 
+  - Share button for URL generation
+  - Reset palette functionality
+  - Educational descriptions and about text
+
+- **Main Area**: Dedicated entirely to the visualization canvas
+  - Maximizes space for the Voronoi diagram display
+  - Includes regenerate pattern button below canvas
+  - Shows empty state guidance when no colors are added
+
+This layout keeps all controls organized in one location while providing maximum space for the visualization.
+
 ## Key Components
 
 ### `VoronoiVisualization.tsx`
@@ -58,10 +77,16 @@ This application allows users to create color palettes and visualize how they wo
 - Provides visual feedback for current theme state
 
 ### `LightingSelector.tsx`
-- Tab-style lighting condition selector with 5 standard illuminants plus natural view
-- Shows light source names, color temperatures, and descriptive icons
-- Supports daylight (D65), incandescent, fluorescent, LED, and 660nm red light
-- Provides educational descriptions of each lighting condition
+- Tab-style lighting condition selector with 4 standard illuminants plus natural view
+- Shows light source names and color temperatures
+- Supports incandescent, fluorescent, LED, and 660nm red light
+- Positioned in sidebar for space-efficient control layout
+
+### `Sidebar.tsx`
+- Left panel containing all application controls and settings
+- Houses color picker, palette management, scale control, lighting selector, and share functionality
+- Organized in logical workflow order: Colors → Scale → Lighting → Share
+- Includes reset functionality and educational descriptions
 
 ## Utilities
 
@@ -114,12 +139,13 @@ The lighting visualization system provides scientifically accurate simulation of
 
 ### Supported Light Sources
 
-1. **Natural (Default)**: No transformation - shows colors as specified
-2. **Daylight (D65)**: Standard daylight at 6500K - outdoor lighting conditions
-3. **Incandescent**: Warm tungsten bulb at 2856K - traditional indoor lighting
-4. **Fluorescent**: Cool white fluorescent at 4230K - office environments
-5. **LED Cool White**: Modern LED at 5000K - energy-efficient lighting
-6. **Red LED (660nm)**: Narrow-band red light - specialized viewing condition
+1. **Natural (Daylight)**: No transformation - shows colors as specified (renamed from "Natural")
+2. **Incandescent**: Warm tungsten bulb at 2856K - traditional indoor lighting
+3. **Fluorescent**: Cool white fluorescent at 4230K - office environments
+4. **LED Cool White**: Modern LED at 5000K - energy-efficient lighting
+5. **Red LED (660nm)**: Narrow-band red light - specialized viewing condition
+
+*Note: The redundant "Daylight (D65)" option was removed as it was functionally identical to the natural view.*
 
 ### Color Science Implementation
 

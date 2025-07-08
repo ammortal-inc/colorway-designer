@@ -3,6 +3,7 @@ import { Color } from '../types';
 import ColorPicker from './ColorPicker';
 import ColorPalette from './ColorPalette';
 import ScaleControl from './ScaleControl';
+import LightingSelector from './LightingSelector';
 import ShareButton from './ShareButton';
 
 interface SidebarProps {
@@ -20,7 +21,8 @@ interface SidebarProps {
   maxColors: number;
   scale: number;
   onScaleChange: (scale: number) => void;
-  lightingId: string;
+  selectedLightId: string;
+  onLightChange: (lightId: string) => void;
   isGenerating: boolean;
 }
 
@@ -39,7 +41,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   maxColors,
   scale,
   onScaleChange,
-  lightingId,
+  selectedLightId,
+  onLightChange,
   isGenerating,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
@@ -101,10 +104,17 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <div className="mt-6">
+        <LightingSelector
+          selectedLightId={selectedLightId}
+          onLightChange={onLightChange}
+        />
+      </div>
+      
+      <div className="mt-6">
         <ShareButton
           colors={colors}
           scale={scale}
-          lightingId={lightingId}
+          lightingId={selectedLightId}
           disabled={isGenerating}
         />
       </div>

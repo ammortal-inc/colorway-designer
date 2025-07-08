@@ -5,7 +5,6 @@ import { LIGHT_SOURCES } from './utils/lightingUtils';
 import { useURLState } from './hooks/useURLState';
 import Sidebar from './components/Sidebar';
 import VoronoiVisualization from './components/VoronoiVisualization';
-import LightingSelector from './components/LightingSelector';
 import ThemeToggle from './components/ThemeToggle';
 
 const MAX_COLORS = 10;
@@ -151,7 +150,8 @@ function App() {
         maxColors={MAX_COLORS}
         scale={scale}
         onScaleChange={handleScaleChange}
-        lightingId={selectedLightId}
+        selectedLightId={selectedLightId}
+        onLightChange={setSelectedLightId}
         isGenerating={isGenerating}
       />
       
@@ -165,11 +165,6 @@ function App() {
               This visualization shows how your selected colors will appear when mixed as plastic chips in a manufactured sheet.
             </p>
           </div>
-          
-          <LightingSelector
-            selectedLightId={selectedLightId}
-            onLightChange={setSelectedLightId}
-          />
           
           <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
             <VoronoiVisualization

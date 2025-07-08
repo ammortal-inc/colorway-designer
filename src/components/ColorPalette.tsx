@@ -13,6 +13,8 @@ interface ColorPaletteProps {
   onTemporaryColorSave?: (colorId: string, hex: string) => void;
   temporaryColorId?: string | null;
   temporaryColorHex?: string | null;
+  isolatedColorId?: string | null;
+  onColorIsolate?: (colorId: string | null) => void;
 }
 
 const ColorPalette: React.FC<ColorPaletteProps> = ({ 
@@ -23,7 +25,9 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   onTemporaryColorChange,
   onTemporaryColorClose,
   temporaryColorId,
-  temporaryColorHex
+  temporaryColorHex,
+  isolatedColorId,
+  onColorIsolate
 }) => {
   const [editingDensity, setEditingDensity] = useState<string | null>(null);
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
@@ -96,6 +100,13 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     setAnchorElement(null);
   };
 
+  const handleColorIsolate = (colorId: string) => {
+    if (onColorIsolate) {
+      // Toggle isolation: if already isolated, clear it; otherwise isolate this color
+      onColorIsolate(isolatedColorId === colorId ? null : colorId);
+    }
+  };
+
   if (colors.length === 0) {
     return (
       <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
@@ -107,14 +118,27 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-3">
-        Color Palette ({colors.length}/10)
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+          Color Palette ({colors.length}/10)
+        </h3>
+        {isolatedColorId && (
+          <button
+            onClick={() => onColorIsolate && onColorIsolate(null)}
+            className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors"
+            title="Show all colors"
+          >
+            Show All
+          </button>
+        )}
+      </div>
       
       <div className="grid grid-cols-1 gap-3">
         {colors.map((color) => {
           const probability = calculateColorProbability(color, totalDensity, colors.length);
           const isEditing = editingDensity === color.id;
+          const isIsolated = isolatedColorId === color.id;
+          const isOtherIsolated = isolatedColorId && isolatedColorId !== color.id;
           
           // Use temporary color if this color is being edited
           const displayColor = color.id === temporaryColorId && temporaryColorHex 
@@ -125,7 +149,13 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
           return (
             <div
               key={color.id}
-              className="p-3 border border-neutral-300 dark:border-neutral-600 rounded-lg hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors"
+              className={`p-3 border rounded-lg transition-all ${
+                isIsolated 
+                  ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800' 
+                  : isOtherIsolated
+                    ? 'border-neutral-300 dark:border-neutral-600 opacity-50'
+                    : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500'
+              }`}
               style={{ backgroundColor: displayColor }}
             >
               <div className="flex items-center justify-between mb-2">
@@ -152,16 +182,52 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                   </button>
                 </div>
                 
-                <button
-                  onClick={() => onColorRemove(color.id)}
-                  className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center text-sm font-bold"
-                  style={{ 
-                    color: textColor
-                  }}
-                  aria-label={`Remove color ${color.hex}`}
-                >
-                  ×
-                </button>
+                <div className="flex items-center space-x-2">
+                  {onColorIsolate && (
+                    <button
+                      onClick={() => handleColorIsolate(color.id)}
+                      className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center"
+                      style={{ color: textColor }}
+                      title={isIsolated ? "Show all colors" : "Focus on this color"}
+                    >
+                      <svg 
+                        className="w-4 h-4" 
+                        viewBox="0 0 24 24" 
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        {isIsolated ? (
+                          // Filled crosshair icon (isolated)
+                          <>
+                            <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/>
+                            <path d="M12 2v20M2 12h20" stroke="white" strokeWidth="2"/>
+                            <circle cx="12" cy="12" r="3" fill="none" stroke="white" strokeWidth="2"/>
+                          </>
+                        ) : (
+                          // Outline crosshair icon (normal)
+                          <>
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2v20M2 12h20"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </>
+                        )}
+                      </svg>
+                    </button>
+                  )}
+                  
+                  <button
+                    onClick={() => onColorRemove(color.id)}
+                    className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center text-sm font-bold"
+                    style={{ 
+                      color: textColor
+                    }}
+                    aria-label={`Remove color ${color.hex}`}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-2">

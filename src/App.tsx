@@ -28,6 +28,7 @@ function App() {
   const [temporaryColorId, setTemporaryColorId] = useState<string | null>(null);
   const [temporaryColorHex, setTemporaryColorHex] = useState<string | null>(null);
   const [selectedLightId, setSelectedLightId] = useState<string>('natural');
+  const [isolatedColorId, setIsolatedColorId] = useState<string | null>(null);
   
   // URL state management
   const handleColorsChange = useCallback((newColors: Color[]) => {
@@ -105,8 +106,13 @@ function App() {
 
   const handleReset = () => {
     setColors([]);
-    // Also clear any temporary color state
+    // Also clear any temporary color state and isolation
     handleTemporaryColorClose();
+    setIsolatedColorId(null);
+  };
+
+  const handleColorIsolate = (colorId: string | null) => {
+    setIsolatedColorId(colorId);
   };
 
   // Create colors with temporary override for visualization
@@ -152,6 +158,8 @@ function App() {
         onScaleChange={handleScaleChange}
         selectedLightId={selectedLightId}
         onLightChange={setSelectedLightId}
+        isolatedColorId={isolatedColorId}
+        onColorIsolate={handleColorIsolate}
         isGenerating={isGenerating}
       />
       
@@ -173,6 +181,7 @@ function App() {
               height={600}
               scale={scale}
               lightSource={selectedLightSource}
+              isolatedColorId={isolatedColorId}
             />
           </div>
         </div>

@@ -2,6 +2,13 @@ import { Delaunay } from 'd3-delaunay';
 import { Color, VoronoiCell } from '../types';
 import { getRandomColor, getSeededRandomColor } from './colorUtils';
 
+// Interface for hover information
+export interface CellHoverInfo {
+  color: Color;
+  cellIndex: number;
+  position: { x: number; y: number };
+}
+
 // Simple Linear Congruential Generator for consistent seeded randomness
 const createSeededRandom = (seed: number): (() => number) => {
   let current = seed;
@@ -73,7 +80,8 @@ export const renderVoronoiToCanvas = (
   preGeneratedPoints: [number, number][] | null,
   colors: Color[],
   cellCount: number = 100,
-  seed: number = 0
+  seed: number = 0,
+  isolatedColorId?: string | null
 ): void => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -139,6 +147,12 @@ export const renderVoronoiToCanvas = (
     const cellSeed = seed + i;
     const randomColor = getSeededRandomColor(colors, cellSeed);
     
+    // Apply isolation logic: if a color is isolated, show others at low opacity
+    const isIsolatedColor = isolatedColorId && randomColor.id === isolatedColorId;
+    const shouldDimColor = isolatedColorId && !isIsolatedColor;
+    
+    // Set canvas alpha for dimmed colors, keep normal alpha for isolated/normal colors
+    ctx.globalAlpha = shouldDimColor ? 0.15 : 1.0;
     ctx.fillStyle = randomColor.hex;
     ctx.beginPath();
     
@@ -155,4 +169,41 @@ export const renderVoronoiToCanvas = (
     ctx.closePath();
     ctx.fill();
   }
+  
+  // Reset global alpha to default
+  ctx.globalAlpha = 1.0;
+};
+
+// Find which cell contains the given point
+export const findCellAtPoint = (
+  x: number,
+  y: number,
+  points: [number, number][],
+  colors: Color[],
+  seed: number
+): CellHoverInfo | null => {
+  if (points.length === 0 || colors.length === 0) {
+    return null;
+  }
+
+  try {
+    const delaunay = Delaunay.from(points);
+    const cellIndex = delaunay.find(x, y);
+    
+    if (cellIndex !== -1 && cellIndex < points.length) {
+      // Use the same seeded random logic as rendering to get the consistent color
+      const cellSeed = seed + cellIndex;
+      const color = getSeededRandomColor(colors, cellSeed);
+      
+      return {
+        color,
+        cellIndex,
+        position: { x: points[cellIndex][0], y: points[cellIndex][1] }
+      };
+    }
+  } catch (error) {
+    console.warn('Error finding cell at point:', error);
+  }
+  
+  return null;
 };

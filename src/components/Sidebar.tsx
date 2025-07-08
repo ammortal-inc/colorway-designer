@@ -23,6 +23,8 @@ interface SidebarProps {
   onScaleChange: (scale: number) => void;
   selectedLightId: string;
   onLightChange: (lightId: string) => void;
+  isolatedColorId?: string | null;
+  onColorIsolate?: (colorId: string | null) => void;
   isGenerating: boolean;
 }
 
@@ -43,6 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onScaleChange,
   selectedLightId,
   onLightChange,
+  isolatedColorId,
+  onColorIsolate,
   isGenerating,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
@@ -81,6 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         onTemporaryColorSave={onTemporaryColorSave}
         temporaryColorId={temporaryColorId}
         temporaryColorHex={temporaryColorHex}
+        isolatedColorId={isolatedColorId}
+        onColorIsolate={onColorIsolate}
       />
 
       {colors.length > 0 && (

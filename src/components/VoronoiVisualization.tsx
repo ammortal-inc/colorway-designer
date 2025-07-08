@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Color } from '../types';
-import { renderVoronoiToCanvas, generateSeededPoints } from '../utils/voronoiUtils';
+import { renderVoronoiToCanvas, generateSeededPoints, findCellAtPoint, CellHoverInfo } from '../utils/voronoiUtils';
 import { LightSource, getCachedColorTransform } from '../utils/lightingUtils';
+import ColorTooltip from './ColorTooltip';
 
 interface VoronoiVisualizationProps {
   colors: Color[];
@@ -9,6 +10,7 @@ interface VoronoiVisualizationProps {
   height?: number;
   scale?: number;
   lightSource?: LightSource;
+  isolatedColorId?: string | null;
 }
 
 const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
@@ -17,6 +19,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   height = 600,
   scale = 1.0,
   lightSource,
+  isolatedColorId,
 }) => {
   // Map scale 0.1-4.0 to cell count 100-10000
   const minCells = 100;
@@ -30,6 +33,9 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   const [canvasSize, setCanvasSize] = useState({ width, height });
   const [seed, setSeed] = useState(() => Math.random() * 1000000);
   const [cachedPoints, setCachedPoints] = useState<[number, number][]>([]);
+  const [hoveredCell, setHoveredCell] = useState<CellHoverInfo | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+  const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -93,12 +99,41 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
 
-    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, transformedColors, cellCount, seed);
-  }, [transformedColors, canvasSize, cachedPoints, cellCount, seed]);
+    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, transformedColors, cellCount, seed, isolatedColorId);
+  }, [transformedColors, canvasSize, cachedPoints, cellCount, seed, isolatedColorId]);
 
   const regeneratePattern = () => {
     // Generate a new seed to create a completely new pattern
     setSeed(Math.random() * 1000000);
+  };
+
+  // Handle mouse move over canvas for hover detection
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || cachedPoints.length === 0 || colors.length === 0) {
+      setHoveredCell(null);
+      setMousePosition(null);
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    setCanvasRect(rect);
+    
+    // Calculate mouse position relative to canvas
+    const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+    
+    setMousePosition({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+    
+    // Find which cell the mouse is over
+    const cellInfo = findCellAtPoint(x, y, cachedPoints, transformedColors, seed);
+    setHoveredCell(cellInfo);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredCell(null);
+    setMousePosition(null);
+    setCanvasRect(null);
   };
 
   return (
@@ -108,7 +143,9 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       <div className="relative flex justify-center">
         <canvas
           ref={canvasRef}
-          className="border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-sm transition-opacity duration-300"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          className="border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-sm transition-opacity duration-300 cursor-crosshair"
           style={{ 
             width: `${canvasSize.width}px`, 
             height: `${canvasSize.height}px`,
@@ -144,6 +181,16 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       )}
       
       <div className="flex-1"></div>
+      
+      {/* Color tooltip */}
+      {hoveredCell && mousePosition && canvasRect && (
+        <ColorTooltip
+          color={hoveredCell.color}
+          allColors={transformedColors}
+          position={mousePosition}
+          canvasRect={canvasRect}
+        />
+      )}
     </div>
   );
 };

@@ -13,6 +13,8 @@ This application allows users to create color palettes and visualize how they wo
 - **Voronoi Visualization**: Dynamic visualization showing how colors would appear when mixed
 - **Persistent Structure**: Cell patterns remain consistent during color editing
 - **Adaptive UI**: Full background colors with automatic text contrast adjustment
+- **Light/Dark Mode**: Toggle between light and dark themes with persistent user preference
+- **Reset Functionality**: Clear all colors from palette with a single click
 - **URL Sharing**: Share colorways via URL parameters
 
 ## Technical Stack
@@ -48,6 +50,11 @@ This application allows users to create color palettes and visualize how they wo
 - Pointer and keyboard navigation support
 - Real-time color generation in HSB color space
 
+### `ThemeToggle.tsx`
+- Light/dark mode toggle button with sun/moon icons
+- Positioned in upper right corner of the application
+- Provides visual feedback for current theme state
+
 ## Utilities
 
 ### `colorUtils.ts`
@@ -60,6 +67,30 @@ This application allows users to create color palettes and visualize how they wo
 - Seeded point generation for consistent cell patterns
 - Voronoi rendering with gap elimination
 - Performance optimizations for high cell counts
+
+## Theme System
+
+### `ThemeContext.tsx`
+- React context for managing light/dark theme state
+- Automatic system preference detection on first visit
+- localStorage persistence for user preferences
+- Listens for system theme changes when no manual preference is set
+
+### Theme Implementation
+**Tailwind Configuration:**
+- Uses `darkMode: 'class'` strategy for theme switching
+- Applies theme classes to document root
+
+**Color Strategy:**
+- **Light Mode**: `bg-neutral-50/100`, `text-neutral-900/600`, `border-neutral-300`
+- **Dark Mode**: `bg-neutral-800/900`, `text-neutral-100/300`, `border-neutral-600`
+- **Exclusively Neutral Grays**: No blue-shifted gray colors for true neutral appearance
+
+**Component Updates:**
+- All components updated with `dark:` prefixed classes
+- Consistent neutral gray color palette throughout
+- Maintains accessibility with proper contrast ratios
+- Dynamic color palette backgrounds remain unchanged (theme-neutral)
 
 ## Development Commands
 
@@ -117,7 +148,17 @@ Test the application by:
 1. Adding multiple colors with different densities
 2. Editing colors and verifying consistent cell patterns
 3. Adjusting scale to test performance with different cell counts
-4. Sharing URLs to test persistence
+4. **Testing Reset Functionality**: 
+   - Add several colors to the palette
+   - Click "Reset Palette" button and verify all colors are cleared
+   - Confirm temporary color state is also cleared
+   - Verify reset button only appears when colors exist
+5. Sharing URLs to test persistence
+6. **Testing Theme Toggle**: Switch between light/dark modes to verify:
+   - All components render correctly in both themes
+   - Color contrast meets accessibility standards
+   - Theme preference persists across browser sessions
+   - System theme changes are detected when no manual preference is set
 
 ## State Management Architecture
 
@@ -154,6 +195,21 @@ const visualizationColors = colors.map(color =>
 ```
 
 This ensures the visualization always shows the most current color state without disrupting the permanent palette.
+
+### Reset Functionality
+The reset feature provides a clean way to clear all colors:
+```typescript
+const handleReset = () => {
+  setColors([]);
+  // Also clear any temporary color state
+  handleTemporaryColorClose();
+};
+```
+
+- **Reset Button**: Only visible when colors exist in the palette
+- **Complete Reset**: Clears both permanent colors and any temporary editing state
+- **UI Feedback**: Red button styling indicates destructive action
+- **No Confirmation**: Immediate action for quick workflow (can be undone via browser back/forward if URL sharing is enabled)
 
 ## URL State Management Deep Dive
 
@@ -407,6 +463,29 @@ interface CompactColorPickerProps {
   onColorChange: (newHex: string) => void;        // Real-time color updates
   onClose: () => void;                           // Close callback
 }
+
+interface ThemeContextType {
+  theme: 'light' | 'dark';                       // Current theme
+  toggleTheme: () => void;                       // Toggle function
+}
+```
+
+### Theme Usage
+```typescript
+// Using the theme context in components
+import { useTheme } from '../contexts/ThemeContext';
+
+const MyComponent = () => {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <div className="bg-white dark:bg-neutral-800">
+      <button onClick={toggleTheme}>
+        Current theme: {theme}
+      </button>
+    </div>
+  );
+};
 ```
 
 ## Future Enhancements

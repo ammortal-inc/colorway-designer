@@ -11,6 +11,8 @@ This application allows users to create color palettes and visualize how they wo
 - **Color Palette Management**: Add, edit, and remove colors with density weights
 - **Real-time Color Editing**: Compact popup color picker with 2D picker, RGB/HSB inputs, and hex validation
 - **Intuitive UI**: Eyedropper icons indicate clickable color codes for easy discovery
+- **Color Isolation**: Focus on individual colors with crosshair targeting icons to see their distribution
+- **Interactive Cell Detection**: Hover over visualization cells to see which color they represent
 - **Voronoi Visualization**: Dynamic visualization showing how colors would appear when mixed
 - **Persistent Structure**: Cell patterns remain consistent during color editing
 - **Adaptive UI**: Full background colors with automatic text contrast adjustment
@@ -75,6 +77,12 @@ This layout keeps all controls organized in one location while providing maximum
 - Light/dark mode toggle button with sun/moon icons
 - Positioned in upper right corner of the application
 - Provides visual feedback for current theme state
+
+### `ColorTooltip.tsx`
+- Hover tooltip component for canvas cell identification
+- Shows color hex code, density value, and probability percentage
+- Smart positioning relative to cursor with viewport boundary detection
+- Provides immediate feedback about cell color assignment
 
 ### `LightingSelector.tsx`
 - Tab-style lighting condition selector with 4 standard illuminants plus natural view
@@ -182,6 +190,83 @@ The lighting visualization system provides scientifically accurate simulation of
 - Defaults to 'natural' when no lighting parameter present
 - Browser history support for lighting state changes
 
+## Color Isolation & Cell Detection System
+
+### Overview
+The color isolation system allows users to focus on individual colors within the Voronoi visualization to understand their distribution patterns and density effects.
+
+### Color Isolation Feature
+
+**Crosshair Targeting Icons:**
+- Enhanced crosshair icons with outer circle, full crosshair lines, and inner targeting circle
+- Visual states: outline (normal) and filled with white elements (isolated)
+- Positioned next to each color in the palette for easy access
+
+**Isolation Behavior:**
+- **Isolated Color**: Displays at full opacity (100%) in the visualization
+- **Other Colors**: Dimmed to 15% opacity using canvas `globalAlpha` for clean rendering
+- **Palette Feedback**: Isolated color shows blue border with ring, others appear dimmed
+- **Toggle Function**: Click same crosshair to return to normal view, or click different color to switch isolation
+
+**Technical Implementation:**
+- Uses canvas `globalAlpha` property instead of RGBA strings for better performance
+- Maintains proper alpha state reset to prevent rendering conflicts
+- Compatible with all lighting conditions and transformations
+- Preserves seeded random generation for consistent cell patterns
+
+### Interactive Cell Detection
+
+**Canvas Hover System:**
+- Real-time cell identification using D3-Delaunay's efficient point-in-polygon detection
+- Mouse cursor changes to crosshair when hovering over visualization
+- Immediate tooltip display showing cell information
+
+**Tooltip Information:**
+- **Color Preview**: Small color square matching the cell
+- **Hex Code**: Exact color value (includes lighting transformations)
+- **Density Value**: Weight setting for the color
+- **Probability Percentage**: Calculated distribution probability
+
+**Performance Optimizations:**
+- Uses existing cached points and seeded random logic for consistency
+- Efficient Delaunay triangulation for fast point location
+- Smart tooltip positioning with viewport boundary detection
+
+### User Benefits
+
+**Educational Value:**
+- **Density Understanding**: See how density settings affect real distribution vs. theoretical probability
+- **Pattern Analysis**: Identify clustering and distribution patterns for specific colors
+- **Comparative Visualization**: Easy switching between colors to compare distributions
+
+**Workflow Enhancement:**
+- **Color Balancing**: Quickly identify over/under-represented colors
+- **Design Iteration**: Test different density values and see immediate visual feedback
+- **Quality Control**: Ensure desired color prominence in final visualization
+
+### Technical Architecture
+
+**State Management:**
+```typescript
+// App.tsx state for isolation
+const [isolatedColorId, setIsolatedColorId] = useState<string | null>(null);
+
+// VoronoiVisualization hover state
+const [hoveredCell, setHoveredCell] = useState<CellHoverInfo | null>(null);
+```
+
+**Rendering Pipeline:**
+1. **Normal Rendering**: All colors at full opacity
+2. **Isolation Rendering**: Canvas alpha manipulation for dimming
+3. **Hover Detection**: Point-in-polygon testing with Delaunay triangulation
+4. **Tooltip Display**: Real-time positioning and information display
+
+**Integration Points:**
+- **ColorPalette**: Crosshair buttons and visual state management
+- **VoronoiVisualization**: Canvas rendering and mouse event handling
+- **Sidebar**: Prop passing and state coordination
+- **App**: Central state management and handler functions
+
 ## Development Commands
 
 ```bash
@@ -260,6 +345,19 @@ Test the application by:
    - Verify cool lights (LED, fluorescent) maintain or enhance blue tones
    - Check URL persistence includes lighting parameter
    - Test smooth transitions between lighting conditions (300ms duration)
+9. **Testing Color Isolation**: 
+   - Click crosshair icons next to colors to isolate individual colors
+   - Verify isolated color appears at full opacity while others are dimmed (15%)
+   - Confirm visual feedback in palette (blue border/ring for isolated color)
+   - Test toggling isolation on/off and switching between different colors
+   - Verify isolation works correctly with all lighting conditions
+   - Check that "Show All" button appears when any color is isolated
+10. **Testing Interactive Cell Detection**: 
+    - Hover mouse over visualization cells to see tooltips
+    - Verify tooltips show correct color hex, density, and probability
+    - Test tooltip positioning near viewport edges
+    - Confirm hover detection works with different cell scales and lighting
+    - Check that cursor changes to crosshair when hovering over canvas
 
 ## State Management Architecture
 

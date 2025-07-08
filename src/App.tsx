@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { Color } from './types';
 import { createColor } from './utils/colorUtils';
+import { LIGHT_SOURCES } from './utils/lightingUtils';
 import { useURLState } from './hooks/useURLState';
 import Sidebar from './components/Sidebar';
 import VoronoiVisualization from './components/VoronoiVisualization';
+import LightingSelector from './components/LightingSelector';
 import ThemeToggle from './components/ThemeToggle';
 
 const MAX_COLORS = 10;
@@ -26,6 +28,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [temporaryColorId, setTemporaryColorId] = useState<string | null>(null);
   const [temporaryColorHex, setTemporaryColorHex] = useState<string | null>(null);
+  const [selectedLightId, setSelectedLightId] = useState<string>('natural');
   
   // URL state management
   const handleColorsChange = useCallback((newColors: Color[]) => {
@@ -36,11 +39,17 @@ function App() {
     setScale(newScale);
   }, []);
   
+  const handleLightingChangeFromURL = useCallback((newLightId: string) => {
+    setSelectedLightId(newLightId);
+  }, []);
+  
   useURLState({
     colors,
     scale,
+    lightingId: selectedLightId,
     onColorsChange: handleColorsChange,
     onScaleChange: handleScaleChangeFromURL,
+    onLightingChange: handleLightingChangeFromURL,
   });
 
   const handleColorAdd = (hex: string) => {
@@ -108,6 +117,11 @@ function App() {
       : color
   );
   
+  // Find the selected light source
+  const selectedLightSource = selectedLightId === 'natural' 
+    ? undefined 
+    : LIGHT_SOURCES.find(light => light.id === selectedLightId);
+  
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale);
     setIsGenerating(true);
@@ -137,6 +151,7 @@ function App() {
         maxColors={MAX_COLORS}
         scale={scale}
         onScaleChange={handleScaleChange}
+        lightingId={selectedLightId}
         isGenerating={isGenerating}
       />
       
@@ -151,12 +166,18 @@ function App() {
             </p>
           </div>
           
+          <LightingSelector
+            selectedLightId={selectedLightId}
+            onLightChange={setSelectedLightId}
+          />
+          
           <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
             <VoronoiVisualization
               colors={visualizationColors}
               width={600}
               height={600}
               scale={scale}
+              lightSource={selectedLightSource}
             />
           </div>
         </div>

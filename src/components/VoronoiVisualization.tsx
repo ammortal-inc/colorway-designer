@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Color } from '../types';
 import { renderVoronoiToCanvas, generateSeededPoints } from '../utils/voronoiUtils';
+import { LightSource, getCachedColorTransform } from '../utils/lightingUtils';
 
 interface VoronoiVisualizationProps {
   colors: Color[];
   width?: number;
   height?: number;
   scale?: number;
+  lightSource?: LightSource;
 }
 
 const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
@@ -14,6 +16,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   width = 600,
   height = 600,
   scale = 1.0,
+  lightSource,
 }) => {
   // Map scale 0.1-4.0 to cell count 100-10000
   const minCells = 100;
@@ -70,7 +73,19 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     }
   }, [cellCount, canvasSize.width, canvasSize.height, seed]);
 
-  // Render canvas using cached points whenever colors or points change
+  // Apply lighting transformation to colors if lightSource is provided
+  const transformedColors = React.useMemo(() => {
+    if (!lightSource) {
+      return colors;
+    }
+    
+    return colors.map(color => ({
+      ...color,
+      hex: getCachedColorTransform(color.hex, lightSource.id)
+    }));
+  }, [colors, lightSource]);
+
+  // Render canvas using cached points whenever colors, lighting, or points change
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -78,8 +93,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
 
-    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, colors, cellCount, seed);
-  }, [colors, canvasSize, cachedPoints, cellCount, seed]);
+    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, transformedColors, cellCount, seed);
+  }, [transformedColors, canvasSize, cachedPoints, cellCount, seed]);
 
   const regeneratePattern = () => {
     // Generate a new seed to create a completely new pattern
@@ -93,7 +108,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       <div className="relative flex justify-center">
         <canvas
           ref={canvasRef}
-          className="border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-sm"
+          className="border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-sm transition-opacity duration-300"
           style={{ 
             width: `${canvasSize.width}px`, 
             height: `${canvasSize.height}px`,
@@ -107,6 +122,11 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
             <div className="text-center text-neutral-600 dark:text-neutral-400">
               <p className="text-lg">Add colors to see visualization</p>
               <p className="text-sm">Your plastic sheet preview will appear here</p>
+              {lightSource && (
+                <p className="text-xs mt-2 opacity-75">
+                  Lighting: {lightSource.name}
+                </p>
+              )}
             </div>
           </div>
         )}

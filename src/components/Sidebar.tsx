@@ -20,6 +20,7 @@ interface SidebarProps {
   maxColors: number;
   scale: number;
   onScaleChange: (scale: number) => void;
+  lightingId: string;
   isGenerating: boolean;
 }
 
@@ -38,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   maxColors,
   scale,
   onScaleChange,
+  lightingId,
   isGenerating,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
@@ -102,6 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <ShareButton
           colors={colors}
           scale={scale}
+          lightingId={lightingId}
           disabled={isGenerating}
         />
       </div>

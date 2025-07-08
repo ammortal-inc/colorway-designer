@@ -5,10 +5,11 @@ import { generateShareableURL } from '../utils/urlUtils';
 interface ShareButtonProps {
   colors: Color[];
   scale: number;
+  lightingId: string;
   disabled?: boolean;
 }
 
-const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = false }) => {
+const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, lightingId, disabled = false }) => {
   const [copied, setCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
@@ -21,7 +22,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = fal
       // Wait a brief moment to ensure URL is updated
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      const shareableUrl = generateShareableURL(colors, scale);
+      const shareableUrl = generateShareableURL(colors, scale, lightingId);
       
       // Try to use the modern Clipboard API
       if (navigator.clipboard && navigator.clipboard.writeText) {

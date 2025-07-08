@@ -10,30 +10,34 @@ import {
 interface UseURLStateProps {
   colors: Color[];
   scale: number;
+  lightingId: string;
   onColorsChange: (colors: Color[]) => void;
   onScaleChange: (scale: number) => void;
+  onLightingChange: (lightingId: string) => void;
 }
 
 interface UseURLStateReturn {
-  updateURLWithState: (colors: Color[], scale: number) => void;
-  loadStateFromURL: () => { colors: Color[], scale: number } | null;
+  updateURLWithState: (colors: Color[], scale: number, lightingId: string) => void;
+  loadStateFromURL: () => { colors: Color[], scale: number, lightingId: string } | null;
 }
 
 export const useURLState = ({
   colors,
   scale,
+  lightingId,
   onColorsChange,
   onScaleChange,
+  onLightingChange,
 }: UseURLStateProps): UseURLStateReturn => {
   const isInitialLoad = useRef(true);
   const isUpdatingFromURL = useRef(false);
   
   // Debounced URL update function
   const debouncedUpdateURL = useRef(
-    debounce((colors: Color[], scale: number) => {
+    debounce((colors: Color[], scale: number, lightingId: string) => {
       // Only update URL if we're not currently updating from URL
       if (!isUpdatingFromURL.current) {
-        updateURL(colors, scale);
+        updateURL(colors, scale, lightingId);
       }
     }, 300)
   ).current;
@@ -49,14 +53,14 @@ export const useURLState = ({
     return null;
   }, []);
 
-  // Update URL when colors or scale changes
-  const updateURLWithState = useCallback((colors: Color[], scale: number) => {
+  // Update URL when colors, scale, or lighting changes
+  const updateURLWithState = useCallback((colors: Color[], scale: number, lightingId: string) => {
     // Don't update URL if we're currently loading from URL
     if (isUpdatingFromURL.current) {
       return;
     }
     
-    debouncedUpdateURL(colors, scale);
+    debouncedUpdateURL(colors, scale, lightingId);
   }, [debouncedUpdateURL]);
 
   // Load initial state from URL (only on mount)
@@ -77,6 +81,7 @@ export const useURLState = ({
           );
         
         const scaleChanged = Math.abs(urlState.scale - scale) > 0.01;
+        const lightingChanged = urlState.lightingId !== lightingId;
         
         if (colorsChanged) {
           onColorsChange(urlState.colors);
@@ -84,6 +89,10 @@ export const useURLState = ({
         
         if (scaleChanged) {
           onScaleChange(urlState.scale);
+        }
+        
+        if (lightingChanged) {
+          onLightingChange(urlState.lightingId);
         }
         
         // Reset flag after state updates have been applied
@@ -99,9 +108,9 @@ export const useURLState = ({
   // Update URL when state changes (after initial load)
   useEffect(() => {
     if (!isInitialLoad.current) {
-      updateURLWithState(colors, scale);
+      updateURLWithState(colors, scale, lightingId);
     }
-  }, [colors, scale, updateURLWithState]);
+  }, [colors, scale, lightingId, updateURLWithState]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -113,6 +122,7 @@ export const useURLState = ({
       if (urlState) {
         onColorsChange(urlState.colors);
         onScaleChange(urlState.scale);
+        onLightingChange(urlState.lightingId);
       }
       
       // Reset flag after state updates
@@ -126,7 +136,7 @@ export const useURLState = ({
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [onColorsChange, onScaleChange, loadStateFromURL]);
+  }, [onColorsChange, onScaleChange, onLightingChange, loadStateFromURL]);
 
   return {
     updateURLWithState,

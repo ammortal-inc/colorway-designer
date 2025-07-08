@@ -4,6 +4,7 @@ import { createColor } from './utils/colorUtils';
 import { useURLState } from './hooks/useURLState';
 import Sidebar from './components/Sidebar';
 import VoronoiVisualization from './components/VoronoiVisualization';
+import ThemeToggle from './components/ThemeToggle';
 
 const MAX_COLORS = 10;
 
@@ -109,7 +110,12 @@ function App() {
   }, []);
 
   return (
-    <div className="flex flex-row h-screen bg-neutral-900">
+    <div className="flex flex-row h-screen bg-neutral-50 dark:bg-neutral-900">
+      {/* Theme toggle in upper right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <Sidebar
         colors={colors}
         onColorAdd={handleColorAdd}
@@ -130,15 +136,15 @@ function App() {
       <main className="flex-1 p-4 lg:p-8 overflow-auto flex flex-col">
         <div className="max-w-4xl mx-auto flex-1 flex flex-col">
           <div className="mb-6">
-            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+            <h2 className="text-2xl lg:text-3xl font-bold text-neutral-900 dark:text-white mb-2">
               Plastic Sheet Preview
             </h2>
-            <p className="text-neutral-300 text-sm lg:text-base">
+            <p className="text-neutral-600 dark:text-neutral-300 text-sm lg:text-base">
               This visualization shows how your selected colors will appear when mixed as plastic chips in a manufactured sheet.
             </p>
           </div>
           
-          <div className="bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
+          <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 lg:p-6 flex-1">
             <VoronoiVisualization
               colors={visualizationColors}
               width={600}

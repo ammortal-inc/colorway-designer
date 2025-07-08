@@ -29,21 +29,21 @@ const ScaleControl: React.FC<ScaleControlProps> = ({ scale, onScaleChange, disab
     <div className="mb-6">
       <div className="mb-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-medium text-neutral-100">
+          <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
             Scale Control
           </h3>
           {isGenerating && (
-            <span className="text-xs text-blue-400">Updating...</span>
+            <span className="text-xs text-blue-500 dark:text-blue-400">Updating...</span>
           )}
         </div>
-        <div className="text-sm text-neutral-300">
+        <div className="text-sm text-neutral-600 dark:text-neutral-300">
           {scale.toFixed(1)}x ({getCellCount(scale)} cells)
         </div>
       </div>
       
       <div className="space-y-3">
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-neutral-400 w-8">Close</span>
+          <span className="text-sm text-neutral-500 dark:text-neutral-400 w-8">Close</span>
           
           <div className="flex-1 relative">
             <input
@@ -54,15 +54,15 @@ const ScaleControl: React.FC<ScaleControlProps> = ({ scale, onScaleChange, disab
               value={scale}
               onChange={handleScaleChange}
               disabled={disabled}
-              className="w-full h-2 bg-neutral-600 rounded-lg appearance-none cursor-pointer slider"
+              className="w-full h-2 bg-neutral-300 dark:bg-neutral-600 rounded-lg appearance-none cursor-pointer slider"
             />
           </div>
           
-          <span className="text-sm text-neutral-400 w-10">Far</span>
+          <span className="text-sm text-neutral-500 dark:text-neutral-400 w-10">Far</span>
         </div>
       </div>
       
-      <p className="text-xs text-neutral-400 mt-3">
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
         Adjust the viewing scale to see more or fewer color cells. Lower values simulate viewing from farther away.
       </p>
       

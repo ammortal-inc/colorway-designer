@@ -93,7 +93,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       <div className="relative flex justify-center">
         <canvas
           ref={canvasRef}
-          className="border border-neutral-600 rounded-lg shadow-sm"
+          className="border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-sm"
           style={{ 
             width: `${canvasSize.width}px`, 
             height: `${canvasSize.height}px`,
@@ -103,8 +103,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
         />
         
         {colors.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-neutral-700 rounded-lg">
-            <div className="text-center text-neutral-400">
+          <div className="absolute inset-0 flex items-center justify-center bg-neutral-200 dark:bg-neutral-700 rounded-lg">
+            <div className="text-center text-neutral-600 dark:text-neutral-400">
               <p className="text-lg">Add colors to see visualization</p>
               <p className="text-sm">Your plastic sheet preview will appear here</p>
             </div>
@@ -117,7 +117,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       {colors.length > 0 && (
         <button
           onClick={regeneratePattern}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-neutral-800 transition-colors"
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-800 transition-colors"
         >
           Regenerate Pattern
         </button>

@@ -98,7 +98,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
 
   if (colors.length === 0) {
     return (
-      <div className="text-center py-8 text-neutral-400">
+      <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
         <p>No colors in palette</p>
         <p className="text-sm">Add some colors to get started!</p>
       </div>
@@ -107,7 +107,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-lg font-medium text-neutral-100 mb-3">
+      <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-3">
         Color Palette ({colors.length}/10)
       </h3>
       
@@ -125,7 +125,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
           return (
             <div
               key={color.id}
-              className="p-3 border border-neutral-600 rounded-lg hover:border-neutral-500 transition-colors"
+              className="p-3 border border-neutral-300 dark:border-neutral-600 rounded-lg hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors"
               style={{ backgroundColor: displayColor }}
             >
               <div className="flex items-center justify-between mb-2">
@@ -172,7 +172,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                             if (e.key === 'Enter') handleDensitySubmit(color.id);
                             if (e.key === 'Escape') handleDensityCancel(color.id);
                           }}
-                          className="w-16 px-1 py-0.5 text-xs border border-neutral-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/90 backdrop-blur-sm"
+                          className="w-16 px-1 py-0.5 text-xs border border-neutral-400 dark:border-neutral-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm"
                           style={{ color: '#374151' }}
                           autoFocus
                         />

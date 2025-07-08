@@ -56,10 +56,10 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = fal
   return (
     <div className="mb-6">
       <div className="mb-3">
-        <h3 className="text-lg font-medium text-neutral-100">
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
           Share Configuration
         </h3>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Copy a link to share this color palette and scale setting
         </p>
       </div>
@@ -68,12 +68,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = fal
         onClick={handleShare}
         disabled={disabled || isSharing || !hasContent}
         className={`
-          w-full px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral-800
+          w-full px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-800
           ${copied 
             ? 'bg-green-600 text-white focus:ring-green-400' 
             : hasContent && !disabled && !isSharing
               ? 'bg-blue-600 text-white hover:bg-blue-500 focus:ring-blue-400'
-              : 'bg-neutral-600 text-neutral-400 cursor-not-allowed'
+              : 'bg-neutral-400 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-400 cursor-not-allowed'
           }
         `}
       >
@@ -103,7 +103,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, disabled = fal
       </button>
       
       {!hasContent && (
-        <p className="text-xs text-neutral-500 mt-2">
+        <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-2">
           Add colors to enable sharing
         </p>
       )}

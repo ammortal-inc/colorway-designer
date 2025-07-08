@@ -41,12 +41,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isMaxColorsReached = colors.length >= maxColors;
 
   return (
-    <div className="w-1/4 bg-neutral-800 border-r border-neutral-600 p-6 overflow-y-auto flex-shrink-0">
+    <div className="w-1/4 bg-white dark:bg-neutral-800 border-r border-neutral-300 dark:border-neutral-600 p-6 overflow-y-auto flex-shrink-0">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-neutral-100 mb-2">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
           Colorway Designer
         </h1>
-        <p className="text-neutral-300 text-sm">
+        <p className="text-neutral-600 dark:text-neutral-300 text-sm">
           Design custom colorways for plastic sheets using recycled chip colors
         </p>
       </div>
@@ -58,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
         
         {isMaxColorsReached && (
-          <p className="text-yellow-400 text-sm mt-2">
+          <p className="text-yellow-600 dark:text-yellow-400 text-sm mt-2">
             Maximum of {maxColors} colors reached. Remove a color to add more.
           </p>
         )}
@@ -93,8 +93,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
 
-      <div className="mt-8 pt-6 border-t border-neutral-600">
-        <div className="text-sm text-neutral-300 space-y-1">
+      <div className="mt-8 pt-6 border-t border-neutral-300 dark:border-neutral-600">
+        <div className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
           <p><strong>About:</strong> This tool helps you visualize how different colored plastic chips will look when mixed together in a manufacturing process.</p>
           <p><strong>Density:</strong> Each color has a density value that controls its probability of being selected. Higher density = more frequent appearance in the visualization.</p>
           <p><strong>Visualization:</strong> The Voronoi diagram shows a weighted distribution of your selected colors based on their density values, simulating the random mixing of plastic chips.</p>

@@ -238,7 +238,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
   return (
     <div
       ref={popupRef}
-      className="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50"
+      className="fixed bg-white dark:bg-neutral-800 rounded-lg shadow-xl border border-neutral-300 dark:border-neutral-600 p-4 z-50"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -247,10 +247,10 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
     >
       {/* Header with close button */}
       <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-medium text-gray-700">Edit Color</div>
+        <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Edit Color</div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+          className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors p-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -273,7 +273,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
           <div className="flex flex-col items-center">
             <div 
               ref={hueSliderRef}
-              className="w-4 h-[120px] rounded cursor-pointer relative border border-gray-300"
+              className="w-4 h-[120px] rounded cursor-pointer relative border border-neutral-300 dark:border-neutral-600"
               style={{
                 background: 'linear-gradient(to bottom, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
               }}
@@ -285,7 +285,7 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
             >
               {/* Hue indicator */}
               <div
-                className="absolute w-4 h-2 bg-white border border-gray-600 rounded-sm shadow-md pointer-events-none"
+                className="absolute w-4 h-2 bg-white border border-neutral-600 dark:border-neutral-700 rounded-sm shadow-md pointer-events-none"
                 style={{
                   top: `${(hsbValues.h / 360) * 100}%`,
                   left: '0px',
@@ -299,39 +299,39 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
           <div className="flex gap-3">
             {/* RGB Inputs */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">RGB</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">RGB</label>
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">R</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">R</span>
                   <input
                     type="number"
                     min="0"
                     max="255"
                     value={rgbValues.r}
                     onChange={(e) => handleRgbChange('r', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">G</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">G</span>
                   <input
                     type="number"
                     min="0"
                     max="255"
                     value={rgbValues.g}
                     onChange={(e) => handleRgbChange('g', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">B</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">B</span>
                   <input
                     type="number"
                     min="0"
                     max="255"
                     value={rgbValues.b}
                     onChange={(e) => handleRgbChange('b', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
               </div>
@@ -339,39 +339,39 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
 
             {/* HSB Inputs */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">HSB</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">HSB</label>
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">H</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">H</span>
                   <input
                     type="number"
                     min="0"
                     max="360"
                     value={hsbValues.h}
                     onChange={(e) => handleHsbChange('h', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">S</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">S</span>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={hsbValues.s}
                     onChange={(e) => handleHsbChange('s', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500 w-3">B</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 w-3">B</span>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={hsbValues.b}
                     onChange={(e) => handleHsbChange('b', e.target.value)}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-16 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
               </div>
@@ -382,27 +382,27 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
 
       {/* Hex input */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
           Hex Color
         </label>
         <input
           type="text"
           value={hexInput}
           onChange={(e) => handleHexChange(e.target.value)}
-          className={`w-full px-2 py-1 border rounded text-sm font-mono ${
+          className={`w-full px-2 py-1 border rounded text-sm font-mono bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 ${
             isHexValid 
-              ? 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
-              : 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+              ? 'border-neutral-300 dark:border-neutral-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+              : 'border-red-300 dark:border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
           }`}
           placeholder="#FF0000"
         />
         {!isHexValid && (
-          <div className="text-red-500 text-xs mt-1">Invalid hex color</div>
+          <div className="text-red-500 dark:text-red-400 text-xs mt-1">Invalid hex color</div>
         )}
       </div>
 
       {/* Instructions */}
-      <div className="text-xs text-gray-500 mt-3">
+      <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
         Click outside or press Escape to close
       </div>
     </div>

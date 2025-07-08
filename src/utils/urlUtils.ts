@@ -93,7 +93,7 @@ export const decodeColorsFromURL = (url: string): URLState | null => {
         }
       });
       // For synchronous validation, use a simple check
-      const knownLightIds = ['natural', 'daylight-d65', 'incandescent-a', 'fluorescent-f2', 'led-5000k', 'red-660nm'];
+      const knownLightIds = ['natural', 'incandescent-a', 'fluorescent-f2', 'led-5000k', 'red-660nm'];
       if (knownLightIds.includes(lightingParam)) {
         lightingId = lightingParam;
       }

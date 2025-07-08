@@ -38,17 +38,45 @@ function linearToSrgb(value: number): number {
 // Convert hex color to RGB values (0-1 range)
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const cleanHex = hex.replace('#', '');
-  const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
-  const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
-  const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
+  
+  let r: number, g: number, b: number;
+  
+  if (cleanHex.length === 3) {
+    // Shorthand hex (e.g., #AAA -> #AAAAAA)
+    r = parseInt(cleanHex.charAt(0) + cleanHex.charAt(0), 16) / 255;
+    g = parseInt(cleanHex.charAt(1) + cleanHex.charAt(1), 16) / 255;
+    b = parseInt(cleanHex.charAt(2) + cleanHex.charAt(2), 16) / 255;
+  } else if (cleanHex.length === 6) {
+    // Full hex (e.g., #AABBCC)
+    r = parseInt(cleanHex.substring(0, 2), 16) / 255;
+    g = parseInt(cleanHex.substring(2, 4), 16) / 255;
+    b = parseInt(cleanHex.substring(4, 6), 16) / 255;
+  } else {
+    // Invalid hex length - return black as fallback
+    console.error(`Invalid hex color length: ${hex}`);
+    return { r: 0, g: 0, b: 0 };
+  }
+  
   return { r, g, b };
 }
 
-// Convert RGB values (0-1 range) to hex
+// Convert RGB values (0-255 range) to hex
 function rgbToHex(r: number, g: number, b: number): string {
-  const rHex = Math.round(r).toString(16).padStart(2, '0');
-  const gHex = Math.round(g).toString(16).padStart(2, '0');
-  const bHex = Math.round(b).toString(16).padStart(2, '0');
+  // Safety checks for invalid values
+  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+    console.error(`NaN values in rgbToHex: r=${r}, g=${g}, b=${b}`);
+    return '#000000';
+  }
+  
+  // Clamp to valid range
+  const rClamped = Math.max(0, Math.min(255, Math.round(r)));
+  const gClamped = Math.max(0, Math.min(255, Math.round(g)));
+  const bClamped = Math.max(0, Math.min(255, Math.round(b)));
+  
+  const rHex = rClamped.toString(16).padStart(2, '0');
+  const gHex = gClamped.toString(16).padStart(2, '0');
+  const bHex = bClamped.toString(16).padStart(2, '0');
+  
   return `#${rHex}${gHex}${bHex}`.toUpperCase();
 }
 
@@ -75,6 +103,12 @@ export function srgbToXyz(r: number, g: number, b: number): XYZColor {
 
 // Convert XYZ back to sRGB with gamma correction
 export function xyzToSrgb(xyz: XYZColor): { r: number; g: number; b: number } {
+  // Safety checks for invalid values
+  if (isNaN(xyz.X) || isNaN(xyz.Y) || isNaN(xyz.Z)) {
+    console.error(`NaN values in xyzToSrgb:`, xyz);
+    return { r: 0, g: 0, b: 0 };
+  }
+  
   // Scale back from standard illuminant
   const X = xyz.X / 100;
   const Y = xyz.Y / 100;
@@ -89,6 +123,12 @@ export function xyzToSrgb(xyz: XYZColor): { r: number; g: number; b: number } {
   r = linearToSrgb(r);
   g = linearToSrgb(g);
   b = linearToSrgb(b);
+  
+  // Safety checks for output
+  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+    console.error(`NaN values in sRGB output: r=${r}, g=${g}, b=${b}`);
+    return { r: 0, g: 0, b: 0 };
+  }
   
   return { r, g, b };
 }
@@ -136,6 +176,12 @@ export function chromaticAdaptation(xyz: XYZColor, sourceWhite: XYZColor, target
   const sourceLMS = applyMatrixTransform(sourceWhite, bradfordMatrix);
   const targetLMS = applyMatrixTransform(targetWhite, bradfordMatrix);
   
+  // Check for division by zero
+  if (sourceLMS.X === 0 || sourceLMS.Y === 0 || sourceLMS.Z === 0) {
+    console.error(`Division by zero in chromatic adaptation`, sourceLMS);
+    return xyz; // Return original color
+  }
+  
   // Calculate adaptation matrix
   const adaptMatrix = [
     [targetLMS.X / sourceLMS.X, 0, 0],
@@ -158,14 +204,6 @@ export const D65_WHITE_POINT: XYZColor = {
 
 // Standard light sources for visualization
 export const LIGHT_SOURCES: LightSource[] = [
-  {
-    id: 'daylight-d65',
-    name: 'Daylight',
-    description: 'Standard daylight (6500K) - natural outdoor lighting',
-    whitePoint: D65_WHITE_POINT,
-    colorTemperature: 6500,
-    spectralProfile: 'continuous'
-  },
   {
     id: 'incandescent-a',
     name: 'Incandescent',
@@ -253,16 +291,21 @@ export function getCachedColorTransform(hexColor: string, lightId: string): stri
     return hexColor; // Return original if light source not found
   }
   
-  const transformed = transformColorForLighting(hexColor, lightSource);
-  
-  // Maintain cache size (LRU eviction)
-  if (colorTransformCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = colorTransformCache.keys().next().value;
-    if (firstKey !== undefined) {
-      colorTransformCache.delete(firstKey);
+  try {
+    const transformed = transformColorForLighting(hexColor, lightSource);
+    
+    // Maintain cache size (LRU eviction)
+    if (colorTransformCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = colorTransformCache.keys().next().value;
+      if (firstKey !== undefined) {
+        colorTransformCache.delete(firstKey);
+      }
     }
+    
+    colorTransformCache.set(cacheKey, transformed);
+    return transformed;
+  } catch (error) {
+    console.error(`Transform error for ${hexColor} with ${lightId}:`, error);
+    return hexColor; // Return original on error
   }
-  
-  colorTransformCache.set(cacheKey, transformed);
-  return transformed;
 }

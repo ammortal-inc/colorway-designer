@@ -1,6 +1,6 @@
 import { Delaunay } from 'd3-delaunay';
 import { Color, VoronoiCell } from '../types';
-import { getRandomColor } from './colorUtils';
+import { getRandomColor, getSeededRandomColor } from './colorUtils';
 
 // Simple Linear Congruential Generator for consistent seeded randomness
 const createSeededRandom = (seed: number): (() => number) => {
@@ -72,7 +72,8 @@ export const renderVoronoiToCanvas = (
   canvas: HTMLCanvasElement,
   preGeneratedPoints: [number, number][] | null,
   colors: Color[],
-  cellCount: number = 100
+  cellCount: number = 100,
+  seed: number = 0
 ): void => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -134,7 +135,9 @@ export const renderVoronoiToCanvas = (
     const cell = voronoi.cellPolygon(i);
     if (!cell) continue;
     
-    const randomColor = getRandomColor(colors);
+    // Use seeded random to ensure consistent color assignment per cell
+    const cellSeed = seed + i;
+    const randomColor = getSeededRandomColor(colors, cellSeed);
     
     ctx.fillStyle = randomColor.hex;
     ctx.beginPath();

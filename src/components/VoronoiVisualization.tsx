@@ -78,8 +78,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
 
-    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, colors, cellCount);
-  }, [colors, canvasSize, cachedPoints, cellCount]);
+    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, colors, cellCount, seed);
+  }, [colors, canvasSize, cachedPoints, cellCount, seed]);
 
   const regeneratePattern = () => {
     // Generate a new seed to create a completely new pattern

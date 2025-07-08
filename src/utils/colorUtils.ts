@@ -225,3 +225,47 @@ export const hsbToHex = (h: number, s: number, b: number): string => {
   const { r, g, b: blue } = hsbToRgb(h, s, b);
   return rgbToHex(r, g, blue);
 };
+
+// Simple Linear Congruential Generator for consistent seeded randomness
+const createSeededRandom = (seed: number): (() => number) => {
+  let current = seed;
+  return () => {
+    current = (current * 1664525 + 1013904223) % 4294967296;
+    return current / 4294967296;
+  };
+};
+
+// Get random color using seeded randomness for consistent results
+export const getSeededRandomColor = (colors: Color[], seed: number): Color => {
+  if (colors.length === 0) {
+    throw new Error('Cannot select from empty color array');
+  }
+  
+  if (colors.length === 1) {
+    return colors[0];
+  }
+  
+  const random = createSeededRandom(seed);
+  const totalDensity = calculateTotalDensity(colors);
+  
+  // If all densities are 0, fall back to equal probability
+  if (totalDensity === 0) {
+    const randomIndex = Math.floor(random() * colors.length);
+    return colors[randomIndex];
+  }
+  
+  // Generate random number between 0 and totalDensity
+  const randomValue = random() * totalDensity;
+  
+  // Find the color using cumulative probability
+  let cumulativeDensity = 0;
+  for (const color of colors) {
+    cumulativeDensity += color.density;
+    if (randomValue <= cumulativeDensity) {
+      return color;
+    }
+  }
+  
+  // Fallback to last color (should not happen with proper implementation)
+  return colors[colors.length - 1];
+};

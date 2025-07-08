@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Color } from '../types';
-import { renderVoronoiToCanvas } from '../utils/voronoiUtils';
+import { renderVoronoiToCanvas, generateSeededPoints } from '../utils/voronoiUtils';
 
 interface VoronoiVisualizationProps {
   colors: Color[];
@@ -25,6 +25,8 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width, height });
+  const [seed, setSeed] = useState(() => Math.random() * 1000000);
+  const [cachedPoints, setCachedPoints] = useState<[number, number][]>([]);
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -60,6 +62,15 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     return () => window.removeEventListener('resize', updateCanvasSize);
   }, [width, height]);
 
+  // Generate points only when cell count or canvas size changes, or when seed changes
+  useEffect(() => {
+    if (canvasSize.width > 0 && canvasSize.height > 0) {
+      const points = generateSeededPoints(cellCount, canvasSize.width, canvasSize.height, seed);
+      setCachedPoints(points);
+    }
+  }, [cellCount, canvasSize.width, canvasSize.height, seed]);
+
+  // Render canvas using cached points whenever colors or points change
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -67,14 +78,12 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
 
-    renderVoronoiToCanvas(canvas, [], colors, cellCount);
-  }, [colors, canvasSize, cellCount, scale]);
+    renderVoronoiToCanvas(canvas, cachedPoints.length > 0 ? cachedPoints : null, colors, cellCount);
+  }, [colors, canvasSize, cachedPoints, cellCount]);
 
   const regeneratePattern = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    renderVoronoiToCanvas(canvas, [], colors, cellCount);
+    // Generate a new seed to create a completely new pattern
+    setSeed(Math.random() * 1000000);
   };
 
   return (

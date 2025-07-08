@@ -2,12 +2,39 @@ import { Delaunay } from 'd3-delaunay';
 import { Color, VoronoiCell } from '../types';
 import { getRandomColor } from './colorUtils';
 
+// Simple Linear Congruential Generator for consistent seeded randomness
+const createSeededRandom = (seed: number): (() => number) => {
+  let current = seed;
+  return () => {
+    current = (current * 1664525 + 1013904223) % 4294967296;
+    return current / 4294967296;
+  };
+};
+
 export const generateRandomPoints = (count: number, width: number, height: number): [number, number][] => {
   const points: [number, number][] = [];
   
   for (let i = 0; i < count; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
+    points.push([x, y]);
+  }
+  
+  return points;
+};
+
+export const generateSeededPoints = (
+  count: number, 
+  width: number, 
+  height: number, 
+  seed: number
+): [number, number][] => {
+  const random = createSeededRandom(seed);
+  const points: [number, number][] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const x = random() * width;
+    const y = random() * height;
     points.push([x, y]);
   }
   
@@ -43,7 +70,7 @@ export const createVoronoiDiagram = (
 
 export const renderVoronoiToCanvas = (
   canvas: HTMLCanvasElement,
-  _cells: VoronoiCell[],
+  preGeneratedPoints: [number, number][] | null,
   colors: Color[],
   cellCount: number = 100
 ): void => {
@@ -61,8 +88,8 @@ export const renderVoronoiToCanvas = (
     return;
   }
   
-  // Generate points and create Voronoi diagram
-  const points = generateRandomPoints(cellCount, width, height);
+  // Use pre-generated points if available, otherwise generate new ones
+  const points = preGeneratedPoints || generateRandomPoints(cellCount, width, height);
   const delaunay = Delaunay.from(points);
   const voronoi = delaunay.voronoi([0, 0, width, height]);
   

@@ -21,7 +21,28 @@ export const normalizeDensity = (densityInput: string): number => {
   return density;
 };
 
-export const createColor = (hex: string, density: number = 1): Color => {
+export interface CreateColorOptions {
+  density?: number;
+  ralNumber?: string;
+  ralName?: string;
+  name?: string;
+}
+
+// Overloaded function signatures for backward compatibility
+export function createColor(hex: string): Color;
+export function createColor(hex: string, density: number): Color;
+export function createColor(hex: string, options: CreateColorOptions): Color;
+export function createColor(hex: string, densityOrOptions?: number | CreateColorOptions): Color {
+  // Handle legacy usage: createColor(hex, density)
+  let options: CreateColorOptions;
+  if (typeof densityOrOptions === 'number') {
+    options = { density: densityOrOptions };
+  } else {
+    options = densityOrOptions || {};
+  }
+  
+  const { density = 1, ralNumber, ralName, name } = options;
+  
   if (!isValidHexColor(hex)) {
     throw new Error('Invalid hex color format');
   }
@@ -30,11 +51,18 @@ export const createColor = (hex: string, density: number = 1): Color => {
     throw new Error('Invalid density value');
   }
   
-  return {
+  const color: Color = {
     id: generateColorId(),
     hex: hex.toUpperCase(),
     density,
   };
+  
+  // Add optional properties if provided
+  if (name) color.name = name;
+  if (ralNumber) color.ralNumber = ralNumber;
+  if (ralName) color.ralName = ralName;
+  
+  return color;
 };
 
 export const calculateTotalDensity = (colors: Color[]): number => {

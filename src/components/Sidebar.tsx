@@ -8,7 +8,7 @@ import ShareButton from './ShareButton';
 
 interface SidebarProps {
   colors: Color[];
-  onColorAdd: (hex: string) => void;
+  onColorAdd: (hex: string, ralData?: { number: string; name: string }) => void;
   onColorRemove: (colorId: string) => void;
   onDensityChange: (colorId: string, density: number) => void;
   onColorChange?: (colorId: string, hex: string) => void;

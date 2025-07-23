@@ -20,7 +20,7 @@ const DEFAULT_COLORS: DefaultColor[] = [
 
 function App() {
   const [colors, setColors] = useState<Color[]>(() => {
-    return DEFAULT_COLORS.map(({ hex, density }) => createColor(hex, density));
+    return DEFAULT_COLORS.map(({ hex, density }) => createColor(hex, { density }));
   });
   
   const [scale, setScale] = useState<number>(1.0);
@@ -52,13 +52,16 @@ function App() {
     onLightingChange: handleLightingChangeFromURL,
   });
 
-  const handleColorAdd = (hex: string) => {
+  const handleColorAdd = (hex: string, ralData?: { number: string; name: string }) => {
     if (colors.length >= MAX_COLORS) {
       return;
     }
     
     try {
-      const newColor = createColor(hex);
+      const newColor = createColor(hex, {
+        ralNumber: ralData?.number,
+        ralName: ralData?.name
+      });
       setColors(prev => [...prev, newColor]);
     } catch (error) {
       console.error('Error adding color:', error);

@@ -9,7 +9,8 @@ This application allows users to create color palettes and visualize how they wo
 ## Key Features
 
 - **Color Palette Management**: Add, edit, and remove colors with density weights
-- **Real-time Color Editing**: Compact popup color picker with 2D picker, RGB/HSB inputs, and hex validation
+- **Real-time Color Editing**: Compact popup color picker with 2D picker, RGB/HSB inputs, hex validation, and RAL color integration
+- **RAL Color System**: Professional plastic color standards with automatic detection and metadata display
 - **Intuitive UI**: Eyedropper icons indicate clickable color codes for easy discovery
 - **Color Isolation**: Focus on individual colors with crosshair targeting icons to see their distribution
 - **Interactive Cell Detection**: Hover over visualization cells to see which color they represent
@@ -63,9 +64,10 @@ This layout keeps all controls organized in one location while providing maximum
 - Supports real-time color preview during editing
 
 ### `CompactColorPicker.tsx`
-- Positioned popup color editor
-- 2D color picker with hue slider
+- Positioned popup color editor with tabbed interface
+- 2D color picker with hue slider for precise color selection
 - RGB and HSB input fields with real-time conversion
+- Integrated RAL color picker with search and automatic detection
 - Smart positioning with viewport boundary detection
 
 ### `ColorPicker2D.tsx`
@@ -95,6 +97,139 @@ This layout keeps all controls organized in one location while providing maximum
 - Houses color picker, palette management, scale control, lighting selector, and share functionality
 - Organized in logical workflow order: Colors → Scale → Lighting → Share
 - Includes reset functionality and educational descriptions
+
+## RAL Color System Integration
+
+### Overview
+The application includes comprehensive support for RAL (Reichs-Ausschuss für Lieferbedingungen) color standards, widely used in the plastic manufacturing industry. This system provides professional color matching and identification capabilities.
+
+### Key Components
+
+#### `RALColorPicker.tsx`
+- **Tabbed Interface**: Three input methods - Hex, RAL Number, and RAL Name
+- **Smart Search**: Real-time search with autocomplete for RAL numbers and names
+- **Automatic Detection**: Hex colors that match RAL standards automatically display RAL metadata
+- **Keyboard Navigation**: Full arrow key and Enter/Escape support for dropdown selection
+- **Error Handling**: Graceful fallback for invalid inputs and network issues
+
+#### `RALDropdown.tsx`
+- **Interactive Results**: Clickable color swatches with RAL information
+- **Visual Feedback**: Hover states and keyboard selection highlighting
+- **Performance Optimized**: Efficient rendering for large result sets
+- **Accessibility**: Screen reader support and keyboard navigation
+
+### RAL Data Management
+
+#### Database Structure
+- **SQLite Database**: High-performance local storage of RAL color data
+- **Indexed Search**: Optimized queries for number and name searches
+- **Color Matching**: Efficient hex-to-RAL lookup functionality
+
+#### Search Capabilities
+```typescript
+// RAL Number Search (supports multiple formats)
+searchRAL("3020")     // Returns RAL 3020 - Traffic red
+searchRAL("RAL 3020") // Also supported but not required
+
+// RAL Name Search (fuzzy matching)
+searchRAL("traffic")  // Returns all colors containing "traffic"
+searchRAL("red")      // Returns all red color variants
+```
+
+### Automatic RAL Detection
+
+#### Hex Input Integration
+- **Smart Validation**: Automatically adds "#" prefix for valid hex patterns
+- **RAL Lookup**: Checks every valid hex input against RAL database
+- **Metadata Display**: Shows RAL number and name when matches are found
+- **URL Persistence**: RAL metadata preserved in shared URLs
+
+#### Implementation Details
+```typescript
+// Automatic RAL detection for hex input
+const handleInputChange = async (newValue: string) => {
+  let formattedValue = newValue.trim();
+  
+  // Add # if missing and looks like hex
+  if (formattedValue && !formattedValue.startsWith('#') && /^[0-9A-Fa-f]{3,6}$/.test(formattedValue)) {
+    formattedValue = '#' + formattedValue;
+  }
+  
+  if (isValidHexColor(formattedValue)) {
+    const upperHex = formattedValue.toUpperCase();
+    
+    // Check if this hex color matches a RAL color
+    const matchingRAL = await getRALByHex(upperHex);
+    if (matchingRAL) {
+      const ralData = { number: matchingRAL.number, name: matchingRAL.name };
+      onColorChange(upperHex, ralData);
+    }
+  }
+};
+```
+
+### Visual Integration
+
+#### Color Palette Display
+- **RAL Metadata**: RAL number and name displayed under hex codes
+- **Full Width Layout**: RAL information uses complete color box width
+- **Consistent Formatting**: "RAL 3020 - Traffic red" format
+- **Tooltip Support**: Full RAL information available on hover
+- **Theme Adaptive**: Proper contrast in both light and dark modes
+
+#### Color Box Layout
+```typescript
+{(color.ralNumber || color.ralName) && (
+  <div className="text-xs opacity-75 mt-1 truncate" style={{ color: textColor }} 
+       title={`${color.ralNumber ? `RAL ${color.ralNumber}` : ''}${color.ralNumber && color.ralName ? ' - ' : ''}${color.ralName || ''}`}>
+    {color.ralNumber && `RAL ${color.ralNumber}`}
+    {color.ralNumber && color.ralName && ' - '}
+    {color.ralName}
+  </div>
+)}
+```
+
+### URL State Persistence
+
+#### RAL-Aware URL Encoding
+- **Automatic Restoration**: RAL data restored from shared URLs via hex lookup
+- **Backwards Compatibility**: Existing URLs without RAL data work unchanged
+- **Async Processing**: Non-blocking RAL lookup during URL restoration
+- **Error Resilience**: Graceful handling of lookup failures
+
+#### Implementation Strategy
+```typescript
+// RAL data restoration from URLs
+colors = await Promise.all(
+  validColors.map(async ({ hex, density }) => {
+    const ralColor = await getRALByHex(hex);
+    if (ralColor) {
+      return createColor(hex, {
+        density,
+        ralNumber: ralColor.number,
+        ralName: ralColor.name
+      });
+    } else {
+      return createColor(hex, { density });
+    }
+  })
+);
+```
+
+### User Experience Enhancements
+
+#### Bug Fixes Implemented
+1. **Hex Input Prepopulation**: Fixed "#FF0000" appearing on page load
+2. **Hex Validation**: Added automatic "#" prefix for valid hex patterns
+3. **RAL Number Placeholder**: Removed confusing "RAL" prefix suggestion
+4. **Metadata Display**: Fixed width constraints causing text truncation
+5. **URL Restoration**: Ensured RAL metadata loads from shared URLs
+
+#### Professional Color Workflow
+- **Industry Standards**: Access to official RAL color specifications
+- **Accurate Matching**: Precise hex-to-RAL color identification
+- **Metadata Preservation**: RAL information persists through all operations
+- **Search Efficiency**: Fast lookup by number, name, or visual similarity
 
 ## Utilities
 
@@ -291,11 +426,20 @@ npm run lint
 Colors are stored with the following structure:
 ```typescript
 interface Color {
-  id: string;
-  hex: string;      // #RRGGBB format
-  density: number;  // Weight for probability calculation
+  id: string;           // Unique identifier (generated)
+  hex: string;          // #RRGGBB format (uppercase)
+  name?: string;        // Optional display name
+  density: number;      // Weight for probability calculation (≥0)
+  ralNumber?: string;   // RAL color number (e.g., "3020")
+  ralName?: string;     // RAL color name (e.g., "Traffic red")
 }
 ```
+
+### RAL Color Integration
+- **Automatic Detection**: Hex colors matching RAL standards automatically include metadata
+- **Professional Standards**: Access to industry-standard plastic color specifications
+- **URL Persistence**: RAL information preserved in shared links via automatic lookup
+- **Visual Display**: RAL metadata shown in palette with full width formatting
 
 ## Voronoi Rendering
 
@@ -358,6 +502,15 @@ Test the application by:
     - Test tooltip positioning near viewport edges
     - Confirm hover detection works with different cell scales and lighting
     - Check that cursor changes to crosshair when hovering over canvas
+11. **Testing RAL Color System**: 
+    - Test hex input without "#" prefix gets automatically formatted
+    - Verify hex colors matching RAL standards show metadata automatically
+    - Test RAL number search (e.g., "3020" finds RAL 3020)
+    - Test RAL name search (e.g., "traffic" finds traffic red variants)
+    - Confirm RAL metadata displays properly in color palette boxes
+    - Test that shared URLs preserve and restore RAL information
+    - Verify RAL dropdown keyboard navigation (arrow keys, Enter, Escape)
+    - Check RAL color picker tabs switch correctly between hex/number/name
 
 ## State Management Architecture
 
@@ -628,10 +781,19 @@ Q740-1-5,dbe3df
 ### Core Types (`src/types/index.ts`)
 ```typescript
 export interface Color {
-  id: string;        // Unique identifier (generated)
-  hex: string;       // #RRGGBB format (uppercase)
-  name?: string;     // Optional display name
-  density: number;   // Weight for probability (≥0)
+  id: string;           // Unique identifier (generated)
+  hex: string;          // #RRGGBB format (uppercase)
+  name?: string;        // Optional display name
+  density: number;      // Weight for probability (≥0)
+  ralNumber?: string;   // RAL color number (e.g., "3020")
+  ralName?: string;     // RAL color name (e.g., "Traffic red")
+}
+
+export interface RALColor {
+  number: string;       // RAL number (e.g., "000 15 00")
+  hex: string;          // Hex color value (e.g., "#252626")
+  name: string;         // Color name (e.g., "Ink black")
+  searchTerms: string;  // Pre-computed search terms for performance
 }
 
 export interface ColorPalette {
@@ -656,11 +818,21 @@ interface VoronoiVisualizationProps {
 }
 
 interface CompactColorPickerProps {
-  color: Color;                                    // Color being edited
-  isOpen: boolean;                                // Visibility state
-  anchorElement: HTMLElement | null;              // Reference for positioning
-  onColorChange: (newHex: string) => void;        // Real-time color updates
-  onClose: () => void;                           // Close callback
+  color: Color;                                              // Color being edited
+  isOpen: boolean;                                          // Visibility state
+  anchorElement: HTMLElement | null;                        // Reference for positioning
+  onColorChange: (newHex: string) => void;                  // Real-time color updates
+  onRALColorSelect?: (hex: string, ralData: { number: string; name: string }) => void; // RAL color selection
+  onClose: () => void;                                      // Close callback
+}
+
+interface RALColorPickerProps {
+  value: string;                                            // Current hex value
+  onColorChange: (hex: string, ralData?: { number: string; name: string }, autoAdd?: boolean) => void; // Color change with optional RAL data
+  onClose?: () => void;                                     // Optional close callback
+  placeholder?: string;                                     // Input placeholder text
+  disabled?: boolean;                                       // Disabled state
+  className?: string;                                       // Additional CSS classes
 }
 
 interface ThemeContextType {

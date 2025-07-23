@@ -24,7 +24,7 @@ export default function RALColorPicker({
   className = ''
 }: RALColorPickerProps) {
   const [activeTab, setActiveTab] = useState<TabType>('hex');
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(value || '');
   const [searchResults, setSearchResults] = useState<RALColor[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -50,9 +50,16 @@ export default function RALColorPicker({
     setSelectedIndex(-1);
     
     if (activeTab === 'hex') {
-      // Direct hex input
-      if (isValidHexColor(newValue)) {
-        onColorChange(newValue.toUpperCase());
+      // Direct hex input - format and validate
+      let formattedValue = newValue.trim();
+      
+      // Add # if missing and looks like hex
+      if (formattedValue && !formattedValue.startsWith('#') && /^[0-9A-Fa-f]{3,6}$/.test(formattedValue)) {
+        formattedValue = '#' + formattedValue;
+      }
+      
+      if (isValidHexColor(formattedValue)) {
+        onColorChange(formattedValue.toUpperCase());
         setShowDropdown(false);
       } else {
         setShowDropdown(false);
@@ -163,7 +170,7 @@ export default function RALColorPicker({
           onClick={() => {
             setActiveTab('hex');
             setShowDropdown(false);
-            setInputValue(value);
+            setInputValue(value || '');
           }}
           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'hex'

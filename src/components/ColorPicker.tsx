@@ -8,7 +8,7 @@ interface ColorPickerProps {
 }
 
 const ColorPicker: React.FC<ColorPickerProps> = ({ onColorAdd, disabled = false }) => {
-  const [currentHex, setCurrentHex] = useState('#FF0000');
+  const [currentHex, setCurrentHex] = useState('');
   const [currentRalData, setCurrentRalData] = useState<{ number: string; name: string } | undefined>();
   const [error, setError] = useState('');
 
@@ -21,7 +21,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ onColorAdd, disabled = false 
     if (autoAdd && isValidHexColor(hex)) {
       onColorAdd(hex, ralData);
       // Reset to default state after auto-adding
-      setCurrentHex('#FF0000');
+      setCurrentHex('');
       setCurrentRalData(undefined);
     }
   };
@@ -36,7 +36,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ onColorAdd, disabled = false 
     setError('');
     
     // Reset to a default state after adding
-    setCurrentHex('#FF0000');
+    setCurrentHex('');
     setCurrentRalData(undefined);
   };
 

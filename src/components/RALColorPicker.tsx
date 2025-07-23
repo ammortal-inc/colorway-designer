@@ -6,7 +6,7 @@ import RALDropdown from './RALDropdown';
 
 interface RALColorPickerProps {
   value: string;
-  onColorChange: (hex: string, ralData?: { number: string; name: string }) => void;
+  onColorChange: (hex: string, ralData?: { number: string; name: string }, autoAdd?: boolean) => void;
   onClose?: () => void;
   placeholder?: string;
   disabled?: boolean;
@@ -86,7 +86,7 @@ export default function RALColorPicker({
       name: ralColor.name
     };
     
-    onColorChange(ralColor.hex, ralData);
+    onColorChange(ralColor.hex, ralData, true); // autoAdd = true for dropdown selections
     setInputValue(getDisplayValue(ralColor));
     setShowDropdown(false);
     setSelectedIndex(-1);

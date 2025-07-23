@@ -12,10 +12,18 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ onColorAdd, disabled = false 
   const [currentRalData, setCurrentRalData] = useState<{ number: string; name: string } | undefined>();
   const [error, setError] = useState('');
 
-  const handleColorChange = (hex: string, ralData?: { number: string; name: string }) => {
+  const handleColorChange = (hex: string, ralData?: { number: string; name: string }, autoAdd?: boolean) => {
     setCurrentHex(hex);
     setCurrentRalData(ralData);
     setError('');
+    
+    // Auto-add color if it came from RAL dropdown selection
+    if (autoAdd && isValidHexColor(hex)) {
+      onColorAdd(hex, ralData);
+      // Reset to default state after auto-adding
+      setCurrentHex('#FF0000');
+      setCurrentRalData(undefined);
+    }
   };
 
   const handleAddColor = () => {

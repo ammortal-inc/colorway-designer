@@ -86,7 +86,7 @@ function App() {
     setColors(prev => 
       prev.map(color => 
         color.id === colorId 
-          ? { ...color, hex } 
+          ? { ...color, hex, ralNumber: undefined, ralName: undefined } 
           : color
       )
     );

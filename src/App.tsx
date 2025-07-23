@@ -92,6 +92,16 @@ function App() {
     );
   };
 
+  const handleRALColorSelect = (colorId: string, hex: string, ralData: { number: string; name: string }) => {
+    setColors(prev => 
+      prev.map(color => 
+        color.id === colorId 
+          ? { ...color, hex, ralNumber: ralData.number, ralName: ralData.name } 
+          : color
+      )
+    );
+  };
+
   const handleTemporaryColorChange = (colorId: string, hex: string) => {
     setTemporaryColorId(colorId);
     setTemporaryColorHex(hex);
@@ -153,6 +163,7 @@ function App() {
         onTemporaryColorChange={handleTemporaryColorChange}
         onTemporaryColorClose={handleTemporaryColorClose}
         onTemporaryColorSave={handleTemporaryColorSave}
+        onRALColorSelect={handleRALColorSelect}
         onReset={handleReset}
         temporaryColorId={temporaryColorId}
         temporaryColorHex={temporaryColorHex}

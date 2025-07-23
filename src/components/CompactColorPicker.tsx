@@ -8,6 +8,7 @@ import {
   isValidHexColor,
   formatHexColor
 } from '../utils/colorUtils';
+import { findClosestRALColors, isNearRALColor, RALColorWithDistance } from '../utils/ralUtils';
 import ColorPicker2D from './ColorPicker2D';
 
 interface CompactColorPickerProps {
@@ -16,6 +17,7 @@ interface CompactColorPickerProps {
   anchorElement: HTMLElement | null;
   onColorChange: (newHex: string) => void;
   onClose: () => void;
+  onRALColorSelect?: (hex: string, ralData: { number: string; name: string }) => void;
 }
 
 interface Position {
@@ -28,7 +30,8 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
   isOpen, 
   anchorElement,
   onColorChange, 
-  onClose 
+  onClose,
+  onRALColorSelect
 }) => {
   const [hexInput, setHexInput] = useState(color.hex);
   const [hsbValues, setHsbValues] = useState(() => hexToHsb(color.hex));
@@ -36,6 +39,10 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
   const [isHexValid, setIsHexValid] = useState(true);
   const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
   const [isDraggingHue, setIsDraggingHue] = useState(false);
+  const [ralSuggestions, setRalSuggestions] = useState<RALColorWithDistance[]>([]);
+  const [isLoadingRAL, setIsLoadingRAL] = useState(false);
+  const [showRALSuggestions, setShowRALSuggestions] = useState(true);
+  const [nearRALInfo, setNearRALInfo] = useState<{ isNear: boolean; closestColor?: any; distance?: number } | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const hueSliderRef = useRef<HTMLDivElement>(null);
 
@@ -105,6 +112,55 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
     setRgbValues(hexToRgb(hex));
     onColorChange(hex);
   }, [onColorChange]);
+
+  // Load RAL suggestions when color changes
+  const loadRALSuggestions = useCallback(async (hex: string) => {
+    if (!isValidHexColor(hex)) return;
+    
+    setIsLoadingRAL(true);
+    try {
+      const [suggestions, nearInfo] = await Promise.all([
+        findClosestRALColors(hex, 5),
+        isNearRALColor(hex)
+      ]);
+      
+      setRalSuggestions(suggestions);
+      setNearRALInfo(nearInfo);
+    } catch (error) {
+      console.error('Error loading RAL suggestions:', error);
+      setRalSuggestions([]);
+      setNearRALInfo(null);
+    } finally {
+      setIsLoadingRAL(false);
+    }
+  }, []);
+
+  // Load RAL suggestions when hex input changes
+  useEffect(() => {
+    if (isValidHexColor(hexInput)) {
+      loadRALSuggestions(hexInput);
+    }
+  }, [hexInput, loadRALSuggestions]);
+
+  // Handle RAL color selection
+  const handleRALColorSelect = useCallback((ralColor: RALColorWithDistance) => {
+    const ralData = {
+      number: ralColor.number,
+      name: ralColor.name
+    };
+    
+    // Update the color picker state
+    setHexInput(ralColor.hex);
+    setHsbValues(hexToHsb(ralColor.hex));
+    setRgbValues(hexToRgb(ralColor.hex));
+    setIsHexValid(true);
+    
+    // Notify parent components
+    onColorChange(ralColor.hex);
+    if (onRALColorSelect) {
+      onRALColorSelect(ralColor.hex, ralData);
+    }
+  }, [onColorChange, onRALColorSelect]);
 
   // Handle hex input changes
   const handleHexChange = useCallback((value: string) => {
@@ -398,6 +454,83 @@ const CompactColorPicker: React.FC<CompactColorPickerProps> = ({
         />
         {!isHexValid && (
           <div className="text-red-500 dark:text-red-400 text-xs mt-1">Invalid hex color</div>
+        )}
+      </div>
+
+      {/* RAL Suggestions Section */}
+      <div className="mt-3 border-t border-neutral-200 dark:border-neutral-600 pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            RAL Color Suggestions
+          </label>
+          <button
+            onClick={() => setShowRALSuggestions(!showRALSuggestions)}
+            className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+          >
+            {showRALSuggestions ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
+        {/* Near RAL Color Indicator */}
+        {nearRALInfo?.isNear && (
+          <div className="mb-2 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-xs">
+            <span className="text-blue-700 dark:text-blue-300">
+              ✓ Near RAL {nearRALInfo.closestColor?.number} - {nearRALInfo.closestColor?.name}
+            </span>
+          </div>
+        )}
+
+        {showRALSuggestions && (
+          <div className="space-y-1">
+            {isLoadingRAL ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                <span className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">Loading suggestions...</span>
+              </div>
+            ) : ralSuggestions.length > 0 ? (
+              ralSuggestions.map((ralColor, index) => (
+                <button
+                  key={`${ralColor.number}-${index}`}
+                  onClick={() => handleRALColorSelect(ralColor)}
+                  className="w-full flex items-center gap-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors text-left"
+                >
+                  {/* Color swatch */}
+                  <div
+                    className="w-4 h-4 rounded border border-neutral-300 dark:border-neutral-600 flex-shrink-0"
+                    style={{ backgroundColor: ralColor.hex }}
+                  />
+                  
+                  {/* Color info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                      RAL {ralColor.number}
+                    </div>
+                    <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                      {ralColor.name}
+                    </div>
+                  </div>
+                  
+                  {/* Distance indicator */}
+                  <div className="text-xs text-neutral-400 dark:text-neutral-500 flex-shrink-0">
+                    Δ{ralColor.distance.toFixed(1)}
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 text-center py-2">
+                No RAL suggestions available
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Current RAL info if available */}
+        {color.ralNumber && color.ralName && (
+          <div className="mt-2 px-2 py-1 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+            <div className="text-xs text-green-700 dark:text-green-300">
+              <strong>Current:</strong> RAL {color.ralNumber} - {color.ralName}
+            </div>
+          </div>
         )}
       </div>
 

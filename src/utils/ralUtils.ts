@@ -1,5 +1,6 @@
 // RAL-specific utility functions for UI components
-import { RALColor, searchRALByNumber, searchRALByName, getRALByHex } from '../data/ralColors';
+import { RALColor, searchRALByNumber, searchRALByName, getRALByHex, getRALColors } from '../data/ralColors';
+import { calculateHexColorDistance } from './colorUtils';
 
 // Debounce utility for search operations
 export function debounce<T extends (...args: any[]) => any>(
@@ -106,4 +107,93 @@ export function highlightSearchTerm(text: string, searchTerm: string): string {
   
   const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');
+}
+
+// Interface for RAL color with distance information
+export interface RALColorWithDistance extends RALColor {
+  distance: number;
+}
+
+// Cache for color distance calculations to improve performance
+const colorDistanceCache = new Map<string, CacheEntry>();
+const CACHE_MAX_SIZE = 500;
+const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
+
+interface CacheEntry {
+  colors: RALColorWithDistance[];
+  timestamp: number;
+}
+
+// Find the closest RAL colors to a given hex color
+export async function findClosestRALColors(
+  targetHex: string, 
+  count: number = 5
+): Promise<RALColorWithDistance[]> {
+  const cacheKey = `${targetHex.toUpperCase()}_${count}`;
+  
+  // Check cache first
+  const cached = colorDistanceCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY_TIME) {
+    return cached.colors;
+  }
+  
+  // Load RAL colors data
+  const ralColors = await getRALColors();
+  if (ralColors.length === 0) {
+    return [];
+  }
+  
+  // Calculate distances to all RAL colors
+  const colorsWithDistance: RALColorWithDistance[] = ralColors.map(ralColor => ({
+    ...ralColor,
+    distance: calculateHexColorDistance(targetHex, ralColor.hex)
+  }));
+  
+  // Sort by distance and take the closest ones
+  colorsWithDistance.sort((a, b) => a.distance - b.distance);
+  const closestColors = colorsWithDistance.slice(0, count);
+  
+  // Cache the result
+  if (colorDistanceCache.size >= CACHE_MAX_SIZE) {
+    // Remove oldest cache entries
+    const sortedEntries = Array.from(colorDistanceCache.entries())
+      .sort(([, a], [, b]) => a.timestamp - b.timestamp);
+    
+    for (let i = 0; i < Math.floor(CACHE_MAX_SIZE / 4); i++) {
+      colorDistanceCache.delete(sortedEntries[i][0]);
+    }
+  }
+  
+  colorDistanceCache.set(cacheKey, {
+    colors: closestColors,
+    timestamp: Date.now()
+  });
+  
+  return closestColors;
+}
+
+// Check if a color is "close" to any RAL color (distance threshold)
+export async function isNearRALColor(
+  hex: string, 
+  threshold: number = 5.0
+): Promise<{ isNear: boolean; closestColor?: RALColor; distance?: number }> {
+  const closest = await findClosestRALColors(hex, 1);
+  
+  if (closest.length === 0) {
+    return { isNear: false };
+  }
+  
+  const closestColor = closest[0];
+  const isNear = closestColor.distance <= threshold;
+  
+  return {
+    isNear,
+    closestColor: isNear ? closestColor : undefined,
+    distance: closestColor.distance
+  };
+}
+
+// Clear the color distance cache (useful for testing or memory management)
+export function clearColorDistanceCache(): void {
+  colorDistanceCache.clear();
 }

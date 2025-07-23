@@ -11,6 +11,7 @@ interface ColorPaletteProps {
   onTemporaryColorChange?: (colorId: string, hex: string) => void;
   onTemporaryColorClose?: () => void;
   onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  onRALColorSelect?: (colorId: string, hex: string, ralData: { number: string; name: string }) => void;
   temporaryColorId?: string | null;
   temporaryColorHex?: string | null;
   isolatedColorId?: string | null;
@@ -24,6 +25,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   onColorChange,
   onTemporaryColorChange,
   onTemporaryColorClose,
+  onRALColorSelect,
   temporaryColorId,
   temporaryColorHex,
   isolatedColorId,
@@ -84,6 +86,16 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   const handleTemporaryColorChange = (newHex: string) => {
     if (editingColorId && onTemporaryColorChange) {
       onTemporaryColorChange(editingColorId, newHex);
+    }
+  };
+
+  const handleRALColorSelection = (hex: string, ralData: { number: string; name: string }) => {
+    if (editingColorId && onRALColorSelect) {
+      onRALColorSelect(editingColorId, hex, ralData);
+    }
+    // Also update temporary color
+    if (editingColorId && onTemporaryColorChange) {
+      onTemporaryColorChange(editingColorId, hex);
     }
   };
 
@@ -325,6 +337,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
           anchorElement={anchorElement}
           onColorChange={handleTemporaryColorChange}
           onClose={handleColorPickerClose}
+          onRALColorSelect={handleRALColorSelection}
         />
       )}
     </div>

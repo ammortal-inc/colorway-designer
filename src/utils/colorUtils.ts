@@ -297,3 +297,87 @@ export const getSeededRandomColor = (colors: Color[], seed: number): Color => {
   // Fallback to last color (should not happen with proper implementation)
   return colors[colors.length - 1];
 };
+
+// LAB color space conversion functions for perceptually accurate color distance
+export interface LABColor {
+  l: number; // Lightness (0-100)
+  a: number; // Green-Red axis
+  b: number; // Blue-Yellow axis
+}
+
+// Convert RGB to XYZ color space (intermediate step for LAB)
+export const rgbToXyz = (r: number, g: number, b: number): { x: number; y: number; z: number } => {
+  // Normalize RGB values to 0-1
+  let rNorm = r / 255;
+  let gNorm = g / 255;
+  let bNorm = b / 255;
+  
+  // Apply gamma correction
+  rNorm = rNorm > 0.04045 ? Math.pow((rNorm + 0.055) / 1.055, 2.4) : rNorm / 12.92;
+  gNorm = gNorm > 0.04045 ? Math.pow((gNorm + 0.055) / 1.055, 2.4) : gNorm / 12.92;
+  bNorm = bNorm > 0.04045 ? Math.pow((bNorm + 0.055) / 1.055, 2.4) : bNorm / 12.92;
+  
+  // Scale by 100
+  rNorm *= 100;
+  gNorm *= 100;
+  bNorm *= 100;
+  
+  // Convert to XYZ using sRGB matrix
+  const x = rNorm * 0.4124564 + gNorm * 0.3575761 + bNorm * 0.1804375;
+  const y = rNorm * 0.2126729 + gNorm * 0.7151522 + bNorm * 0.0721750;
+  const z = rNorm * 0.0193339 + gNorm * 0.1191920 + bNorm * 0.9503041;
+  
+  return { x, y, z };
+};
+
+// Convert XYZ to LAB color space
+export const xyzToLab = (x: number, y: number, z: number): LABColor => {
+  // D65 illuminant reference values
+  const xn = 95.047;
+  const yn = 100.0;
+  const zn = 108.883;
+  
+  // Normalize by reference white point
+  const xr = x / xn;
+  const yr = y / yn;
+  const zr = z / zn;
+  
+  // Apply LAB conversion function
+  const fx = xr > 0.008856 ? Math.pow(xr, 1/3) : (7.787 * xr + 16/116);
+  const fy = yr > 0.008856 ? Math.pow(yr, 1/3) : (7.787 * yr + 16/116);
+  const fz = zr > 0.008856 ? Math.pow(zr, 1/3) : (7.787 * zr + 16/116);
+  
+  const l = 116 * fy - 16;
+  const a = 500 * (fx - fy);
+  const b = 200 * (fy - fz);
+  
+  return { l, a, b };
+};
+
+// Convert RGB to LAB color space (combining the above functions)
+export const rgbToLab = (r: number, g: number, b: number): LABColor => {
+  const { x, y, z } = rgbToXyz(r, g, b);
+  return xyzToLab(x, y, z);
+};
+
+// Convert hex color to LAB color space
+export const hexToLab = (hex: string): LABColor => {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToLab(r, g, b);
+};
+
+// Calculate perceptual color distance using Delta E CIE76 formula
+export const calculateColorDistance = (color1: LABColor, color2: LABColor): number => {
+  const deltaL = color1.l - color2.l;
+  const deltaA = color1.a - color2.a;
+  const deltaB = color1.b - color2.b;
+  
+  return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
+};
+
+// Calculate color distance between two hex colors
+export const calculateHexColorDistance = (hex1: string, hex2: string): number => {
+  const lab1 = hexToLab(hex1);
+  const lab2 = hexToLab(hex2);
+  return calculateColorDistance(lab1, lab2);
+};

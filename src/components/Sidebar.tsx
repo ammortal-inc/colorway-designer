@@ -15,6 +15,7 @@ interface SidebarProps {
   onTemporaryColorChange?: (colorId: string, hex: string) => void;
   onTemporaryColorClose?: () => void;
   onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  onRALColorSelect?: (colorId: string, hex: string, ralData: { number: string; name: string }) => void;
   onReset: () => void;
   temporaryColorId?: string | null;
   temporaryColorHex?: string | null;
@@ -37,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onTemporaryColorChange,
   onTemporaryColorClose,
   onTemporaryColorSave,
+  onRALColorSelect,
   onReset,
   temporaryColorId,
   temporaryColorHex,
@@ -83,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         onTemporaryColorChange={onTemporaryColorChange}
         onTemporaryColorClose={onTemporaryColorClose}
         onTemporaryColorSave={onTemporaryColorSave}
+        onRALColorSelect={onRALColorSelect}
         temporaryColorId={temporaryColorId}
         temporaryColorHex={temporaryColorHex}
         isolatedColorId={isolatedColorId}

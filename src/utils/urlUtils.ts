@@ -1,5 +1,6 @@
 import { Color } from '../types';
 import { createColor, isValidHexColor, isValidDensity } from './colorUtils';
+import { getRALByHex } from '../data/ralColors';
 
 interface URLState {
   colors: Color[];
@@ -45,7 +46,7 @@ export const encodeColorsToURL = (colors: Color[], scale: number, lightingId: st
   }
 };
 
-export const decodeColorsFromURL = (url: string): URLState | null => {
+export const decodeColorsFromURL = async (url: string): Promise<URLState | null> => {
   try {
     const urlObj = new URL(url);
     const params = urlObj.searchParams;
@@ -64,12 +65,31 @@ export const decodeColorsFromURL = (url: string): URLState | null => {
         const decodedColors = atob(colorsParam);
         const parsedColors: SerializableColor[] = JSON.parse(decodedColors);
         
-        // Validate and create Color objects
-        colors = parsedColors
-          .filter(({ hex, density }) => 
-            isValidHexColor(hex) && isValidDensity(density)
-          )
-          .map(({ hex, density }) => createColor(hex, density));
+        // Validate and create Color objects with RAL lookup
+        const validColors = parsedColors.filter(({ hex, density }) => 
+          isValidHexColor(hex) && isValidDensity(density)
+        );
+        
+        // Look up RAL data for each color
+        colors = await Promise.all(
+          validColors.map(async ({ hex, density }) => {
+            try {
+              const ralColor = await getRALByHex(hex);
+              if (ralColor) {
+                return createColor(hex, {
+                  density,
+                  ralNumber: ralColor.number,
+                  ralName: ralColor.name
+                });
+              } else {
+                return createColor(hex, { density });
+              }
+            } catch (error) {
+              console.warn('Error looking up RAL color for', hex, error);
+              return createColor(hex, { density });
+            }
+          })
+        );
       } catch (error) {
         console.warn('Invalid colors parameter in URL:', error);
       }
@@ -106,10 +126,10 @@ export const decodeColorsFromURL = (url: string): URLState | null => {
   }
 };
 
-export const getStateFromURL = (): URLState | null => {
+export const getStateFromURL = async (): Promise<URLState | null> => {
   try {
     const currentUrl = window.location.href;
-    return decodeColorsFromURL(currentUrl);
+    return await decodeColorsFromURL(currentUrl);
   } catch (error) {
     console.error('Error getting state from URL:', error);
     return null;
@@ -131,10 +151,10 @@ export const updateURL = (colors: Color[], scale: number, lightingId: string): v
   }
 };
 
-export const generateShareableURL = (colors: Color[], scale: number, lightingId: string): string => {
+export const generateShareableURL = async (colors: Color[], scale: number, lightingId: string): Promise<string> => {
   try {
     // First, check if the current URL already has the right state
-    const currentUrlState = getStateFromURL();
+    const currentUrlState = await getStateFromURL();
     
     if (currentUrlState && 
         currentUrlState.colors.length === colors.length &&

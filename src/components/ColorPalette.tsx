@@ -11,6 +11,7 @@ interface ColorPaletteProps {
   onTemporaryColorChange?: (colorId: string, hex: string) => void;
   onTemporaryColorClose?: () => void;
   onTemporaryColorSave?: (colorId: string, hex: string) => void;
+  onRALColorSelect?: (colorId: string, hex: string, ralData: { number: string; name: string }) => void;
   temporaryColorId?: string | null;
   temporaryColorHex?: string | null;
   isolatedColorId?: string | null;
@@ -24,6 +25,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   onColorChange,
   onTemporaryColorChange,
   onTemporaryColorClose,
+  onRALColorSelect,
   temporaryColorId,
   temporaryColorHex,
   isolatedColorId,
@@ -33,6 +35,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
   const [editingColorId, setEditingColorId] = useState<string | null>(null);
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const [ralDataToPreserve, setRalDataToPreserve] = useState<{ number: string; name: string } | null>(null);
   const colorButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   
   const totalDensity = calculateTotalDensity(colors);
@@ -78,6 +81,17 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     if (buttonElement && onTemporaryColorChange) {
       setEditingColorId(colorId);
       setAnchorElement(buttonElement);
+      
+      // Preserve existing RAL data if present
+      const currentColor = colors.find(c => c.id === colorId);
+      if (currentColor && currentColor.ralNumber && currentColor.ralName) {
+        setRalDataToPreserve({
+          number: currentColor.ralNumber,
+          name: currentColor.ralName
+        });
+      } else {
+        setRalDataToPreserve(null);
+      }
     }
   };
 
@@ -85,12 +99,34 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     if (editingColorId && onTemporaryColorChange) {
       onTemporaryColorChange(editingColorId, newHex);
     }
+    
+    // Clear RAL data for manual edits - RAL selection handler will set it back if needed
+    setRalDataToPreserve(null);
+  };
+
+  const handleRALColorSelection = (hex: string, ralData: { number: string; name: string }) => {
+    // Store RAL data to preserve when closing color picker
+    setRalDataToPreserve(ralData);
+    
+    if (editingColorId && onRALColorSelect) {
+      onRALColorSelect(editingColorId, hex, ralData);
+    }
+    // Also update temporary color
+    if (editingColorId && onTemporaryColorChange) {
+      onTemporaryColorChange(editingColorId, hex);
+    }
   };
 
   const handleColorPickerClose = () => {
     // Save the temporary color if there is one
-    if (editingColorId && temporaryColorHex && onColorChange) {
-      onColorChange(editingColorId, temporaryColorHex);
+    if (editingColorId && temporaryColorHex) {
+      if (ralDataToPreserve && onRALColorSelect) {
+        // If we have RAL data to preserve, use the RAL-aware handler
+        onRALColorSelect(editingColorId, temporaryColorHex, ralDataToPreserve);
+      } else if (onColorChange) {
+        // Otherwise use the regular color change handler
+        onColorChange(editingColorId, temporaryColorHex);
+      }
     }
     
     if (onTemporaryColorClose) {
@@ -98,6 +134,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     }
     setEditingColorId(null);
     setAnchorElement(null);
+    setRalDataToPreserve(null); // Clear the preserved RAL data
   };
 
   const handleColorIsolate = (colorId: string) => {
@@ -160,26 +197,36 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                  <button
-                    ref={(el) => {
-                      colorButtonRefs.current[color.id] = el;
-                    }}
-                    onClick={() => handleColorEdit(color.id)}
-                    className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity flex items-center"
-                    style={{ color: textColor }}
-                    disabled={!onTemporaryColorChange}
-                    title="Click to open color picker"
-                  >
-                    {displayColor}
-                    <svg 
-                      className="w-4 h-4 ml-2" 
-                      viewBox="0 0 24 24" 
-                      fill="currentColor"
-                      aria-hidden="true"
+                  <div className="flex flex-col">
+                    <button
+                      ref={(el) => {
+                        colorButtonRefs.current[color.id] = el;
+                      }}
+                      onClick={() => handleColorEdit(color.id)}
+                      className="font-mono text-sm font-medium hover:opacity-80 underline transition-opacity flex items-center"
+                      style={{ color: textColor }}
+                      disabled={!onTemporaryColorChange}
+                      title="Click to open color picker"
                     >
-                      <path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12-1.93-1.91-1.41 1.41 1.42 1.42L3 16.25V21h4.75l8.92-8.92 1.42 1.42 1.41-1.41-1.91-1.93 3.12-3.12c.39-.39.39-1.02 0-1.41zM6.92 19H5v-1.92l8.06-8.06 1.92 1.92L6.92 19z"/>
-                    </svg>
-                  </button>
+                      {displayColor}
+                      <svg 
+                        className="w-4 h-4 ml-2" 
+                        viewBox="0 0 24 24" 
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12-1.93-1.91-1.41 1.41 1.42 1.42L3 16.25V21h4.75l8.92-8.92 1.42 1.42 1.41-1.41-1.91-1.93 3.12-3.12c.39-.39.39-1.02 0-1.41zM6.92 19H5v-1.92l8.06-8.06 1.92 1.92L6.92 19z"/>
+                      </svg>
+                    </button>
+                    {/* Show RAL information if available */}
+                    {(color.ralNumber || color.ralName) && (
+                      <div className="text-xs opacity-75 mt-1 truncate" style={{ color: textColor }} title={`${color.ralNumber ? `RAL ${color.ralNumber}` : ''}${color.ralNumber && color.ralName ? ' - ' : ''}${color.ralName || ''}`}>
+                        {color.ralNumber && `RAL ${color.ralNumber}`}
+                        {color.ralNumber && color.ralName && ' - '}
+                        {color.ralName}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -310,6 +357,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
           anchorElement={anchorElement}
           onColorChange={handleTemporaryColorChange}
           onClose={handleColorPickerClose}
+          onRALColorSelect={handleRALColorSelection}
         />
       )}
     </div>

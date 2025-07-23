@@ -22,7 +22,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ colors, scale, lightingId, di
       // Wait a brief moment to ensure URL is updated
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      const shareableUrl = generateShareableURL(colors, scale, lightingId);
+      const shareableUrl = await generateShareableURL(colors, scale, lightingId);
       
       // Try to use the modern Clipboard API
       if (navigator.clipboard && navigator.clipboard.writeText) {

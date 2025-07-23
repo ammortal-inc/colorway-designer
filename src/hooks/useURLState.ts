@@ -18,7 +18,7 @@ interface UseURLStateProps {
 
 interface UseURLStateReturn {
   updateURLWithState: (colors: Color[], scale: number, lightingId: string) => void;
-  loadStateFromURL: () => { colors: Color[], scale: number, lightingId: string } | null;
+  loadStateFromURL: () => Promise<{ colors: Color[], scale: number, lightingId: string } | null>;
 }
 
 export const useURLState = ({
@@ -43,8 +43,8 @@ export const useURLState = ({
   ).current;
 
   // Load state from URL on component mount
-  const loadStateFromURL = useCallback(() => {
-    const urlState = getStateFromURL();
+  const loadStateFromURL = useCallback(async () => {
+    const urlState = await getStateFromURL();
     
     if (isValidURLState(urlState)) {
       return urlState;
@@ -66,42 +66,42 @@ export const useURLState = ({
   // Load initial state from URL (only on mount)
   useEffect(() => {
     if (isInitialLoad.current) {
-      const urlState = loadStateFromURL();
-      
-      if (urlState) {
-        isUpdatingFromURL.current = true;
-        
-        // Only update if the URL state is different from current state
-        const colorsChanged = 
-          urlState.colors.length !== colors.length ||
-          urlState.colors.some((urlColor, index) => 
-            !colors[index] || 
-            urlColor.hex !== colors[index].hex || 
-            urlColor.density !== colors[index].density
-          );
-        
-        const scaleChanged = Math.abs(urlState.scale - scale) > 0.01;
-        const lightingChanged = urlState.lightingId !== lightingId;
-        
-        if (colorsChanged) {
-          onColorsChange(urlState.colors);
+      loadStateFromURL().then(urlState => {
+        if (urlState) {
+          isUpdatingFromURL.current = true;
+          
+          // Only update if the URL state is different from current state
+          const colorsChanged = 
+            urlState.colors.length !== colors.length ||
+            urlState.colors.some((urlColor, index) => 
+              !colors[index] || 
+              urlColor.hex !== colors[index].hex || 
+              urlColor.density !== colors[index].density
+            );
+          
+          const scaleChanged = Math.abs(urlState.scale - scale) > 0.01;
+          const lightingChanged = urlState.lightingId !== lightingId;
+          
+          if (colorsChanged) {
+            onColorsChange(urlState.colors);
+          }
+          
+          if (scaleChanged) {
+            onScaleChange(urlState.scale);
+          }
+          
+          if (lightingChanged) {
+            onLightingChange(urlState.lightingId);
+          }
+          
+          // Reset flag after state updates have been applied
+          setTimeout(() => {
+            isUpdatingFromURL.current = false;
+          }, 100);
         }
         
-        if (scaleChanged) {
-          onScaleChange(urlState.scale);
-        }
-        
-        if (lightingChanged) {
-          onLightingChange(urlState.lightingId);
-        }
-        
-        // Reset flag after state updates have been applied
-        setTimeout(() => {
-          isUpdatingFromURL.current = false;
-        }, 100);
-      }
-      
-      isInitialLoad.current = false;
+        isInitialLoad.current = false;
+      });
     }
   }, []); // Remove dependencies to prevent re-runs
 
@@ -117,18 +117,18 @@ export const useURLState = ({
     const handlePopState = () => {
       isUpdatingFromURL.current = true;
       
-      const urlState = loadStateFromURL();
-      
-      if (urlState) {
-        onColorsChange(urlState.colors);
-        onScaleChange(urlState.scale);
-        onLightingChange(urlState.lightingId);
-      }
-      
-      // Reset flag after state updates
-      setTimeout(() => {
-        isUpdatingFromURL.current = false;
-      }, 100);
+      loadStateFromURL().then(urlState => {
+        if (urlState) {
+          onColorsChange(urlState.colors);
+          onScaleChange(urlState.scale);
+          onLightingChange(urlState.lightingId);
+        }
+        
+        // Reset flag after state updates
+        setTimeout(() => {
+          isUpdatingFromURL.current = false;
+        }, 100);
+      });
     };
 
     window.addEventListener('popstate', handlePopState);

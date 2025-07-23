@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { RALColor } from '../data/ralColors';
+import { RALColor, getRALByHex } from '../data/ralColors';
 import { isValidHexColor } from '../utils/colorUtils';
 import { searchRAL, findRALForHex } from '../utils/ralUtils';
 import RALDropdown from './RALDropdown';
@@ -59,7 +59,28 @@ export default function RALColorPicker({
       }
       
       if (isValidHexColor(formattedValue)) {
-        onColorChange(formattedValue.toUpperCase());
+        const upperHex = formattedValue.toUpperCase();
+        
+        // Check if this hex color matches a RAL color
+        try {
+          const matchingRAL = await getRALByHex(upperHex);
+          if (matchingRAL) {
+            // If it matches a RAL color, include the RAL data
+            const ralData = {
+              number: matchingRAL.number,
+              name: matchingRAL.name
+            };
+            onColorChange(upperHex, ralData);
+          } else {
+            // No RAL match, just pass the hex color
+            onColorChange(upperHex);
+          }
+        } catch (error) {
+          console.error('Error checking RAL match:', error);
+          // Fall back to just passing the hex color
+          onColorChange(upperHex);
+        }
+        
         setShowDropdown(false);
       } else {
         setShowDropdown(false);
@@ -153,7 +174,7 @@ export default function RALColorPicker({
       case 'hex':
         return '#FF0000';
       case 'number':
-        return 'RAL 3020 or 3020';
+        return '3020';
       case 'name':
         return 'Traffic red';
       default:

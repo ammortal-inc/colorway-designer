@@ -53,7 +53,7 @@ export async function searchRAL(query: string): Promise<RALColor[]> {
 
 // Format RAL color for display in dropdown
 export function formatRALColorDisplay(ralColor: RALColor): string {
-  const ralNumber = ralColor.number.replace(/\s+/g, '');
+  const ralNumber = ralColor.number;
   return `RAL ${ralNumber} - ${ralColor.name}`;
 }
 

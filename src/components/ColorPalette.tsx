@@ -185,7 +185,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                     {(color.ralNumber || color.ralName) && (
                       <div className="text-xs opacity-75 mt-1" style={{ color: textColor }}>
                         {color.ralNumber && (
-                          <div>RAL {color.ralNumber.replace(/\s+/g, '')}</div>
+                          <div>RAL {color.ralNumber}</div>
                         )}
                         {color.ralName && (
                           <div className="truncate max-w-32" title={color.ralName}>

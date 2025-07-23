@@ -157,9 +157,9 @@ export async function isValidRALNumber(number: string): Promise<boolean> {
   return RAL_BY_NUMBER.has(number);
 }
 
-// Format RAL number for display (e.g., "000 15 00" -> "RAL 1500")
+// Format RAL number for display (e.g., "000 15 00" -> "RAL 000 15 00")
 export function formatRALNumber(number: string): string {
-  return `RAL ${number.replace(/\s+/g, '')}`;
+  return `RAL ${number}`;
 }
 
 // Parse user input RAL number (e.g., "1500" -> "000 15 00")

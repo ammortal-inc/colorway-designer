@@ -220,15 +220,10 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                     </button>
                     {/* Show RAL information if available */}
                     {(color.ralNumber || color.ralName) && (
-                      <div className="text-xs opacity-75 mt-1" style={{ color: textColor }}>
-                        {color.ralNumber && (
-                          <div>RAL {color.ralNumber}</div>
-                        )}
-                        {color.ralName && (
-                          <div className="truncate max-w-32" title={color.ralName}>
-                            {color.ralName}
-                          </div>
-                        )}
+                      <div className="text-xs opacity-75 mt-1 truncate" style={{ color: textColor }} title={`${color.ralNumber ? `RAL ${color.ralNumber}` : ''}${color.ralNumber && color.ralName ? ' - ' : ''}${color.ralName || ''}`}>
+                        {color.ralNumber && `RAL ${color.ralNumber}`}
+                        {color.ralNumber && color.ralName && ' - '}
+                        {color.ralName}
                       </div>
                     )}
                   </div>

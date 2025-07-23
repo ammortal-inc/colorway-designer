@@ -35,6 +35,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
   const [editingColorId, setEditingColorId] = useState<string | null>(null);
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const [ralDataToPreserve, setRalDataToPreserve] = useState<{ number: string; name: string } | null>(null);
   const colorButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   
   const totalDensity = calculateTotalDensity(colors);
@@ -80,6 +81,17 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     if (buttonElement && onTemporaryColorChange) {
       setEditingColorId(colorId);
       setAnchorElement(buttonElement);
+      
+      // Preserve existing RAL data if present
+      const currentColor = colors.find(c => c.id === colorId);
+      if (currentColor && currentColor.ralNumber && currentColor.ralName) {
+        setRalDataToPreserve({
+          number: currentColor.ralNumber,
+          name: currentColor.ralName
+        });
+      } else {
+        setRalDataToPreserve(null);
+      }
     }
   };
 
@@ -87,9 +99,15 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     if (editingColorId && onTemporaryColorChange) {
       onTemporaryColorChange(editingColorId, newHex);
     }
+    
+    // Clear RAL data for manual edits - RAL selection handler will set it back if needed
+    setRalDataToPreserve(null);
   };
 
   const handleRALColorSelection = (hex: string, ralData: { number: string; name: string }) => {
+    // Store RAL data to preserve when closing color picker
+    setRalDataToPreserve(ralData);
+    
     if (editingColorId && onRALColorSelect) {
       onRALColorSelect(editingColorId, hex, ralData);
     }
@@ -101,8 +119,14 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
 
   const handleColorPickerClose = () => {
     // Save the temporary color if there is one
-    if (editingColorId && temporaryColorHex && onColorChange) {
-      onColorChange(editingColorId, temporaryColorHex);
+    if (editingColorId && temporaryColorHex) {
+      if (ralDataToPreserve && onRALColorSelect) {
+        // If we have RAL data to preserve, use the RAL-aware handler
+        onRALColorSelect(editingColorId, temporaryColorHex, ralDataToPreserve);
+      } else if (onColorChange) {
+        // Otherwise use the regular color change handler
+        onColorChange(editingColorId, temporaryColorHex);
+      }
     }
     
     if (onTemporaryColorClose) {
@@ -110,6 +134,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     }
     setEditingColorId(null);
     setAnchorElement(null);
+    setRalDataToPreserve(null); // Clear the preserved RAL data
   };
 
   const handleColorIsolate = (colorId: string) => {

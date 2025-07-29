@@ -21,9 +21,9 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   lightSource,
   isolatedColorId,
 }) => {
-  // Map scale 0.1-4.0 to cell count 100-10000
+  // Map scale 0.1-4.0 to cell count 100-20000
   const minCells = 100;
-  const maxCells = 10000;
+  const maxCells = 20000;
   const minScale = 0.1;
   const maxScale = 4.0;
   
@@ -79,17 +79,23 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
     }
   }, [cellCount, canvasSize.width, canvasSize.height, seed]);
 
-  // Apply lighting transformation to colors if lightSource is provided
+  // Filter to only visible colors for visualization
+  const visibleColors = React.useMemo(() => 
+    colors.filter(color => color.visible !== false), 
+    [colors]
+  );
+
+  // Apply lighting transformation to visible colors if lightSource is provided
   const transformedColors = React.useMemo(() => {
     if (!lightSource) {
-      return colors;
+      return visibleColors;
     }
     
-    return colors.map(color => ({
+    return visibleColors.map(color => ({
       ...color,
       hex: getCachedColorTransform(color.hex, lightSource.id)
     }));
-  }, [colors, lightSource]);
+  }, [visibleColors, lightSource]);
 
   // Render canvas using cached points whenever colors, lighting, or points change
   useEffect(() => {
@@ -110,7 +116,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   // Handle mouse move over canvas for hover detection
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || cachedPoints.length === 0 || colors.length === 0) {
+    if (!canvas || cachedPoints.length === 0 || transformedColors.length === 0) {
       setHoveredCell(null);
       setMousePosition(null);
       return;
@@ -154,10 +160,10 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
           }}
         />
         
-        {colors.length === 0 && (
+        {transformedColors.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-neutral-200 dark:bg-neutral-700 rounded-lg">
             <div className="text-center text-neutral-600 dark:text-neutral-400">
-              <p className="text-lg">Add colors to see visualization</p>
+              <p className="text-lg">{colors.length === 0 ? 'Add colors to see visualization' : 'Make colors visible to see visualization'}</p>
               <p className="text-sm">Your plastic sheet preview will appear here</p>
               {lightSource && (
                 <p className="text-xs mt-2 opacity-75">
@@ -171,7 +177,7 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
       
       <div className="h-8"></div>
       
-      {colors.length > 0 && (
+      {transformedColors.length > 0 && (
         <button
           onClick={regeneratePattern}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-800 transition-colors"

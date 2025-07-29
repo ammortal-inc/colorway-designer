@@ -128,6 +128,22 @@ function App() {
     setIsolatedColorId(colorId);
   };
 
+  const handleColorVisibilityToggle = useCallback((colorId: string) => {
+    setColors(prevColors => 
+      prevColors.map(color => 
+        color.id === colorId 
+          ? { ...color, visible: !color.visible }
+          : color
+      )
+    );
+  }, []);
+
+  const handleToggleAllVisibility = useCallback((visible: boolean) => {
+    setColors(prevColors => 
+      prevColors.map(color => ({ ...color, visible }))
+    );
+  }, []);
+
   // Create colors with temporary override for visualization
   const visualizationColors = colors.map(color => 
     color.id === temporaryColorId && temporaryColorHex
@@ -174,6 +190,8 @@ function App() {
         onLightChange={setSelectedLightId}
         isolatedColorId={isolatedColorId}
         onColorIsolate={handleColorIsolate}
+        onColorVisibilityToggle={handleColorVisibilityToggle}
+        onToggleAllVisibility={handleToggleAllVisibility}
         isGenerating={isGenerating}
       />
       

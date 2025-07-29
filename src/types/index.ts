@@ -6,6 +6,7 @@ export interface Color {
   // RAL color metadata (optional)
   ralNumber?: string;  // e.g., "000 15 00"
   ralName?: string;    // e.g., "Ink black"
+  visible?: boolean;   // Visibility toggle (defaults to true)
 }
 
 export interface ColorPalette {

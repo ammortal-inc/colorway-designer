@@ -26,6 +26,8 @@ interface SidebarProps {
   onLightChange: (lightId: string) => void;
   isolatedColorId?: string | null;
   onColorIsolate?: (colorId: string | null) => void;
+  onColorVisibilityToggle?: (colorId: string) => void;
+  onToggleAllVisibility?: (visible: boolean) => void;
   isGenerating: boolean;
 }
 
@@ -49,6 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLightChange,
   isolatedColorId,
   onColorIsolate,
+  onColorVisibilityToggle,
+  onToggleAllVisibility,
   isGenerating,
 }) => {
   const isMaxColorsReached = colors.length >= maxColors;
@@ -90,6 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         temporaryColorHex={temporaryColorHex}
         isolatedColorId={isolatedColorId}
         onColorIsolate={onColorIsolate}
+        onColorVisibilityToggle={onColorVisibilityToggle}
+        onToggleAllVisibility={onToggleAllVisibility}
       />
 
       {colors.length > 0 && (

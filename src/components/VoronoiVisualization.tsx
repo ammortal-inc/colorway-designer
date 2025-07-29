@@ -21,9 +21,9 @@ const VoronoiVisualization: React.FC<VoronoiVisualizationProps> = ({
   lightSource,
   isolatedColorId,
 }) => {
-  // Map scale 0.1-4.0 to cell count 100-10000
+  // Map scale 0.1-4.0 to cell count 100-20000
   const minCells = 100;
-  const maxCells = 10000;
+  const maxCells = 20000;
   const minScale = 0.1;
   const maxScale = 4.0;
   

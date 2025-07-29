@@ -14,10 +14,10 @@ const ScaleControl: React.FC<ScaleControlProps> = ({ scale, onScaleChange, disab
   };
 
   const getCellCount = (scale: number) => {
-    // Map scale 0.1-4.0 to cell count 100-10000
-    // Linear interpolation: cellCount = 100 + (scale - 0.1) * (10000 - 100) / (4.0 - 0.1)
+    // Map scale 0.1-4.0 to cell count 100-20000
+    // Linear interpolation: cellCount = 100 + (scale - 0.1) * (20000 - 100) / (4.0 - 0.1)
     const minCells = 100;
-    const maxCells = 10000;
+    const maxCells = 20000;
     const minScale = 0.1;
     const maxScale = 4.0;
     

@@ -11,16 +11,21 @@ interface URLState {
 interface SerializableColor {
   hex: string;
   density: number;
+  visible?: boolean;    // For URL persistence
 }
 
 
 export const encodeColorsToURL = (colors: Color[], scale: number, lightingId: string): string => {
   try {
     // Convert colors to a simpler format for URL encoding
-    const serializableColors: SerializableColor[] = colors.map(({ hex, density }) => ({
-      hex,
-      density,
-    }));
+    const serializableColors: SerializableColor[] = colors.map(({ hex, density, visible }) => {
+      const serializable: SerializableColor = { hex, density };
+      // Only include visible property when it's false (keep URLs compact)
+      if (visible === false) {
+        serializable.visible = false;
+      }
+      return serializable;
+    });
 
     // Create URL parameters
     const params = new URLSearchParams();
@@ -72,21 +77,22 @@ export const decodeColorsFromURL = async (url: string): Promise<URLState | null>
         
         // Look up RAL data for each color
         colors = await Promise.all(
-          validColors.map(async ({ hex, density }) => {
+          validColors.map(async ({ hex, density, visible = true }) => {
             try {
               const ralColor = await getRALByHex(hex);
               if (ralColor) {
                 return createColor(hex, {
                   density,
                   ralNumber: ralColor.number,
-                  ralName: ralColor.name
+                  ralName: ralColor.name,
+                  visible
                 });
               } else {
-                return createColor(hex, { density });
+                return createColor(hex, { density, visible });
               }
             } catch (error) {
               console.warn('Error looking up RAL color for', hex, error);
-              return createColor(hex, { density });
+              return createColor(hex, { density, visible });
             }
           })
         );

@@ -26,6 +26,7 @@ export interface CreateColorOptions {
   ralNumber?: string;
   ralName?: string;
   name?: string;
+  visible?: boolean;    // Visibility option
 }
 
 // Overloaded function signatures for backward compatibility
@@ -41,7 +42,7 @@ export function createColor(hex: string, densityOrOptions?: number | CreateColor
     options = densityOrOptions || {};
   }
   
-  const { density = 1, ralNumber, ralName, name } = options;
+  const { density = 1, ralNumber, ralName, name, visible = true } = options;
   
   if (!isValidHexColor(hex)) {
     throw new Error('Invalid hex color format');
@@ -55,6 +56,7 @@ export function createColor(hex: string, densityOrOptions?: number | CreateColor
     id: generateColorId(),
     hex: hex.toUpperCase(),
     density,
+    visible
   };
   
   // Add optional properties if provided
@@ -66,10 +68,16 @@ export function createColor(hex: string, densityOrOptions?: number | CreateColor
 };
 
 export const calculateTotalDensity = (colors: Color[]): number => {
-  return colors.reduce((total, color) => total + color.density, 0);
+  // Only calculate density for visible colors
+  return colors
+    .filter(color => color.visible !== false)
+    .reduce((total, color) => total + color.density, 0);
 };
 
 export const calculateColorProbability = (color: Color, totalDensity: number, colorsLength: number): number => {
+  // If color is not visible, probability is 0
+  if (color.visible === false) return 0;
+  
   if (totalDensity === 0) {
     return 1 / colorsLength; // Equal probability if all densities are 0
   }
@@ -77,20 +85,23 @@ export const calculateColorProbability = (color: Color, totalDensity: number, co
 };
 
 export const getWeightedRandomColor = (colors: Color[]): Color => {
-  if (colors.length === 0) {
-    throw new Error('Cannot select from empty color array');
+  // Filter to only visible colors
+  const visibleColors = colors.filter(color => color.visible !== false);
+  
+  if (visibleColors.length === 0) {
+    throw new Error('Cannot select from empty visible color array');
   }
   
-  if (colors.length === 1) {
-    return colors[0];
+  if (visibleColors.length === 1) {
+    return visibleColors[0];
   }
   
-  const totalDensity = calculateTotalDensity(colors);
+  const totalDensity = visibleColors.reduce((total, color) => total + color.density, 0);
   
   // If all densities are 0, fall back to equal probability
   if (totalDensity === 0) {
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    return colors[randomIndex];
+    const randomIndex = Math.floor(Math.random() * visibleColors.length);
+    return visibleColors[randomIndex];
   }
   
   // Generate random number between 0 and totalDensity
@@ -98,7 +109,7 @@ export const getWeightedRandomColor = (colors: Color[]): Color => {
   
   // Find the color using cumulative probability
   let cumulativeDensity = 0;
-  for (const color of colors) {
+  for (const color of visibleColors) {
     cumulativeDensity += color.density;
     if (randomValue <= cumulativeDensity) {
       return color;
@@ -106,7 +117,7 @@ export const getWeightedRandomColor = (colors: Color[]): Color => {
   }
   
   // Fallback to last color (should not happen with proper implementation)
-  return colors[colors.length - 1];
+  return visibleColors[visibleColors.length - 1];
 };
 
 // Keep the old function for backward compatibility, but use weighted selection
@@ -265,21 +276,24 @@ const createSeededRandom = (seed: number): (() => number) => {
 
 // Get random color using seeded randomness for consistent results
 export const getSeededRandomColor = (colors: Color[], seed: number): Color => {
-  if (colors.length === 0) {
-    throw new Error('Cannot select from empty color array');
+  // Filter to only visible colors
+  const visibleColors = colors.filter(color => color.visible !== false);
+  
+  if (visibleColors.length === 0) {
+    throw new Error('Cannot select from empty visible color array');
   }
   
-  if (colors.length === 1) {
-    return colors[0];
+  if (visibleColors.length === 1) {
+    return visibleColors[0];
   }
   
   const random = createSeededRandom(seed);
-  const totalDensity = calculateTotalDensity(colors);
+  const totalDensity = visibleColors.reduce((total, color) => total + color.density, 0);
   
   // If all densities are 0, fall back to equal probability
   if (totalDensity === 0) {
-    const randomIndex = Math.floor(random() * colors.length);
-    return colors[randomIndex];
+    const randomIndex = Math.floor(random() * visibleColors.length);
+    return visibleColors[randomIndex];
   }
   
   // Generate random number between 0 and totalDensity
@@ -287,7 +301,7 @@ export const getSeededRandomColor = (colors: Color[], seed: number): Color => {
   
   // Find the color using cumulative probability
   let cumulativeDensity = 0;
-  for (const color of colors) {
+  for (const color of visibleColors) {
     cumulativeDensity += color.density;
     if (randomValue <= cumulativeDensity) {
       return color;
@@ -295,7 +309,7 @@ export const getSeededRandomColor = (colors: Color[], seed: number): Color => {
   }
   
   // Fallback to last color (should not happen with proper implementation)
-  return colors[colors.length - 1];
+  return visibleColors[visibleColors.length - 1];
 };
 
 // LAB color space conversion functions for perceptually accurate color distance

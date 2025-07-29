@@ -16,6 +16,8 @@ interface ColorPaletteProps {
   temporaryColorHex?: string | null;
   isolatedColorId?: string | null;
   onColorIsolate?: (colorId: string | null) => void;
+  onColorVisibilityToggle?: (colorId: string) => void;
+  onToggleAllVisibility?: (visible: boolean) => void;
 }
 
 const ColorPalette: React.FC<ColorPaletteProps> = ({ 
@@ -29,7 +31,9 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   temporaryColorId,
   temporaryColorHex,
   isolatedColorId,
-  onColorIsolate
+  onColorIsolate,
+  onColorVisibilityToggle,
+  onToggleAllVisibility
 }) => {
   const [editingDensity, setEditingDensity] = useState<string | null>(null);
   const [tempDensityValues, setTempDensityValues] = useState<Record<string, string>>({});
@@ -153,21 +157,51 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     );
   }
 
+  // Calculate visibility stats for bulk controls
+  const visibleCount = colors.filter(c => c.visible !== false).length;
+  const hasHiddenColors = colors.some(c => c.visible === false);
+
+  const handleVisibilityToggle = (colorId: string) => {
+    if (onColorVisibilityToggle) {
+      onColorVisibilityToggle(colorId);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
           Color Palette ({colors.length}/10)
         </h3>
-        {isolatedColorId && (
-          <button
-            onClick={() => onColorIsolate && onColorIsolate(null)}
-            className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors"
-            title="Show all colors"
-          >
-            Show All
-          </button>
-        )}
+        <div className="flex items-center space-x-2">
+          {hasHiddenColors && onToggleAllVisibility && (
+            <button
+              onClick={() => onToggleAllVisibility(true)}
+              className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500 transition-colors"
+              title="Show all colors"
+            >
+              Show All
+            </button>
+          )}
+          {visibleCount > 0 && onToggleAllVisibility && (
+            <button
+              onClick={() => onToggleAllVisibility(false)}
+              className="text-xs px-2 py-1 bg-neutral-600 text-white rounded hover:bg-neutral-500 transition-colors"
+              title="Hide all colors"
+            >
+              Hide All
+            </button>
+          )}
+          {isolatedColorId && (
+            <button
+              onClick={() => onColorIsolate && onColorIsolate(null)}
+              className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors"
+              title="Clear isolation"
+            >
+              Clear Isolation
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 gap-3">
@@ -176,6 +210,8 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
           const isEditing = editingDensity === color.id;
           const isIsolated = isolatedColorId === color.id;
           const isOtherIsolated = isolatedColorId && isolatedColorId !== color.id;
+          const isVisible = color.visible !== false;
+          const isHidden = color.visible === false;
           
           // Use temporary color if this color is being edited
           const displayColor = color.id === temporaryColorId && temporaryColorHex 
@@ -187,13 +223,20 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
             <div
               key={color.id}
               className={`p-3 border rounded-lg transition-all ${
-                isIsolated 
-                  ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800' 
-                  : isOtherIsolated
-                    ? 'border-neutral-300 dark:border-neutral-600 opacity-50'
-                    : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500'
+                isHidden 
+                  ? 'opacity-50 border-neutral-300 dark:border-neutral-600' 
+                  : isIsolated 
+                    ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800' 
+                    : isOtherIsolated
+                      ? 'border-neutral-300 dark:border-neutral-600 opacity-50'
+                      : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500'
               }`}
-              style={{ backgroundColor: displayColor }}
+              style={{ 
+                backgroundColor: displayColor,
+                ...(isHidden && { 
+                  backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px)'
+                })
+              }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
@@ -230,6 +273,37 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                 </div>
                 
                 <div className="flex items-center space-x-2">
+                  {onColorVisibilityToggle && (
+                    <button
+                      onClick={() => handleVisibilityToggle(color.id)}
+                      className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 rounded-md p-1 transition-all w-6 h-6 flex items-center justify-center"
+                      style={{ color: textColor }}
+                      title={isVisible ? "Hide color" : "Show color"}
+                    >
+                      <svg 
+                        className="w-4 h-4" 
+                        viewBox="0 0 24 24" 
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        {isVisible ? (
+                          // Open eye icon
+                          <>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </>
+                        ) : (
+                          // Closed eye icon with slash
+                          <>
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                          </>
+                        )}
+                      </svg>
+                    </button>
+                  )}
+                  
                   {onColorIsolate && (
                     <button
                       onClick={() => handleColorIsolate(color.id)}

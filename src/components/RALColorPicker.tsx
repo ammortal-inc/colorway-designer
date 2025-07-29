@@ -83,6 +83,8 @@ export default function RALColorPicker({
         
         setShowDropdown(false);
       } else {
+        // If the input is not a valid hex color, clear the parent's state
+        onColorChange('');
         setShowDropdown(false);
       }
     } else {
